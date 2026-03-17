@@ -6,8 +6,15 @@ services:
     environment:
       PORT: 3000
       DATA_DIR: /app/data
-      MAX_BACKUPS: 20
+      MAX_BACKUPS: ${MAX_BACKUPS:-20}
     volumes:
-      - ${DATA_PATH}:/app/data
-    ports:
-      - "${BIND_HOST:-127.0.0.1}:${APP_PORT:-3000}:3000"
+      - type: bind
+        source: ${DATA_PATH:-/srv/docker/reckeweg}
+        target: /app/data
+    networks:
+      - kayabridge
+
+networks:
+  kayabridge:
+    name: ${NETWORK_NAME:-kayabridge}
+    external: true
