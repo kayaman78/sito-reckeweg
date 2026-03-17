@@ -4,82 +4,91 @@ const express = require('express');
 const fs      = require('fs');
 const path    = require('path');
 
-const app      = express();
-const PORT     = process.env.PORT || 3000;
-const DATA_DIR = process.env.DATA_DIR || '/app/data';
-const JSON_FILE  = path.join(DATA_DIR, 'rimedi.json');
-const DATAJS_FILE = path.join(DATA_DIR, 'data.js');
+const app         = express();
+const PORT        = process.env.PORT        || 3000;
+const DATA_DIR    = process.env.DATA_DIR    || '/app/data';
 const MAX_BACKUPS = parseInt(process.env.MAX_BACKUPS || '20');
 
-// ── Assicura che la cartella data esista ──────────────────────────────
+const JSON_FILE   = path.join(DATA_DIR, 'rimedi.json');
+const DATAJS_FILE = path.join(DATA_DIR, 'data.js');
+
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
-// ── Genera data.js da rimedi.json (chiamata all'avvio + dopo ogni save) ─
-function generateDataJs() {
+// ── Genera data.js da rimedi.json ─────────────────────────────────────
+function generateDataJs(reason) {
   if (!fs.existsSync(JSON_FILE)) {
-    console.warn(`⚠️  ${JSON_FILE} non trovato — data.js non generato`);
-    return;
+    console.warn('⚠️  rimedi.json non trovato — caricalo in DATA_DIR');
+    return false;
   }
-  const raw = fs.readFileSync(JSON_FILE, 'utf8');
-  fs.writeFileSync(DATAJS_FILE, `const RIMEDI = ${raw};\n`, 'utf8');
-  console.log(`✅ data.js rigenerato (${Math.round(raw.length / 1024)} KB)`);
+  try {
+    const raw = fs.readFileSync(JSON_FILE, 'utf8');
+    JSON.parse(raw); // valida prima di scrivere
+    fs.writeFileSync(DATAJS_FILE, `const RIMEDI = ${raw};\n`, 'utf8');
+    console.log(`✅ data.js rigenerato [${reason}] — ${Math.round(raw.length / 1024)} KB`);
+    return true;
+  } catch (e) {
+    console.error('❌ rimedi.json non valido:', e.message);
+    return false;
+  }
 }
 
-generateDataJs();
+// ── File watcher: rigenera se rimedi.json cambia sul bind mount ───────
+let watchDebounce = null;
+fs.watch(DATA_DIR, (event, filename) => {
+  if (filename !== 'rimedi.json') return;
+  clearTimeout(watchDebounce);
+  watchDebounce = setTimeout(() => generateDataJs('file changed'), 500);
+});
+
+// Genera subito all'avvio
+generateDataJs('startup');
 
 // ── Middleware ────────────────────────────────────────────────────────
 app.use(express.json({ limit: '50mb' }));
 
-// data.js servito dalla cartella DATA_DIR (volume)
-app.get('/data.js', (req, res) => {
+// data.js dal bind mount (aggiornato dinamicamente)
+app.get('/data.js', (_req, res) => {
   if (!fs.existsSync(DATAJS_FILE)) {
-    return res.status(404).send('// data.js non ancora generato — carica rimedi.json\n');
+    return res.status(503).send('// data.js non ancora disponibile — carica rimedi.json\n');
   }
   res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Cache-Control', 'no-cache');
   res.sendFile(DATAJS_FILE);
 });
 
-// File statici (index.html ecc.) dalla cartella public dentro il container
+// File statici (index.html) dall'immagine
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ── API ping ──────────────────────────────────────────────────────────
+// ── API ───────────────────────────────────────────────────────────────
 app.get('/api/ping', (_req, res) => res.json({ ok: true }));
 
-// ── API save ──────────────────────────────────────────────────────────
 app.post('/api/save', (req, res) => {
   const data = req.body;
-  if (!Array.isArray(data)) {
+  if (!Array.isArray(data))
     return res.status(400).json({ ok: false, error: 'Payload deve essere un array JSON' });
-  }
 
-  // Backup con timestamp
+  // Backup automatico
   if (fs.existsSync(JSON_FILE)) {
-    const ts  = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
-    const bak = path.join(DATA_DIR, `rimedi_bak_${ts}.json`);
-    fs.copyFileSync(JSON_FILE, bak);
-
-    // Mantieni solo gli ultimi MAX_BACKUPS backup
+    const ts  = new Date().toISOString().replace(/\D/g, '').slice(0, 15);
+    fs.copyFileSync(JSON_FILE, path.join(DATA_DIR, `rimedi_bak_${ts}.json`));
     const baks = fs.readdirSync(DATA_DIR)
       .filter(f => f.startsWith('rimedi_bak_') && f.endsWith('.json'))
       .sort();
     baks.slice(0, Math.max(0, baks.length - MAX_BACKUPS))
-      .forEach(f => fs.unlinkSync(path.join(DATA_DIR, f)));
+      .forEach(f => { try { fs.unlinkSync(path.join(DATA_DIR, f)); } catch {} });
   }
 
-  // Salva JSON
-  const json = JSON.stringify(data, null, 2);
-  fs.writeFileSync(JSON_FILE, json, 'utf8');
-
-  // Rigenera data.js
-  generateDataJs();
+  fs.writeFileSync(JSON_FILE, JSON.stringify(data, null, 2), 'utf8');
+  // Il watcher lo rileverà e rigenererà data.js — ma lo forziamo subito
+  generateDataJs('api/save');
 
   console.log(`💾 Salvati ${data.length} rimedi`);
   res.json({ ok: true, rimedi: data.length });
 });
 
-// ── Avvio ─────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`🟢 Reckeweg server → http://0.0.0.0:${PORT}`);
-  console.log(`   DATA_DIR: ${DATA_DIR}`);
-  console.log(`   rimedi.json: ${fs.existsSync(JSON_FILE) ? 'trovato ✓' : 'non trovato (caricalo nel volume)'}`);
+// ── Start ─────────────────────────────────────────────────────────────
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🟢 Reckeweg → http://0.0.0.0:${PORT}`);
+  console.log(`   DATA_DIR    : ${DATA_DIR}`);
+  console.log(`   rimedi.json : ${fs.existsSync(JSON_FILE) ? '✓ trovato' : '✗ mancante'}`);
 });
