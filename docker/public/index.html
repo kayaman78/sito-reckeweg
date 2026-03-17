@@ -170,6 +170,8 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 
 /* ── EDIT MODE ─────────────────────────────────────────────────────── */
 /* Campi editabili - visibili solo in edit mode */
+.disp-sec{display:none}
+body.edit-mode .disp-sec{display:block}
 body.edit-mode [data-path]{
   outline:1px dashed var(--amber);
   border-radius:3px;
@@ -390,7 +392,7 @@ function showDetail(idx){
 
   const noteContent=r.note||'';
   const noteHTML=`<div class="dsec"><div class="dsec-label">Note</div><div class="note-box" data-path="${idx}.note" contenteditable="false">${noteContent||'<span class=\"note-placeholder\">Aggiungi note — clicca ✏️ per modificare</span>'}</div></div>`;
-  const dispToggle=editMode?`<div class="dsec"><div class="dsec-label">Disponibilità</div><label style="display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer"><input type="checkbox" id="disp-${idx}" ${r.disponibile!==false?'checked':''} onchange="toggleDisponibile(${idx},this.checked)"> Disponibile (deseleziona se fuori produzione)</label></div>`:'';
+  const dispToggle=`<div class="dsec disp-sec"><div class="dsec-label">Disponibilità</div><label style="display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer"><input type="checkbox" id="disp-${idx}" ${r.disponibile!==false?'checked':''} onchange="toggleDisponibile(${idx},this.checked)"> Disponibile (deseleziona se fuori produzione)</label></div>`;
   document.getElementById('detail').innerHTML=`
     <div class="dcard">
       <div class="dcard-header">
