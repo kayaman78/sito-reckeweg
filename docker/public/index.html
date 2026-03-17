@@ -6,7 +6,17 @@
 <title>Dr. Reckeweg - Prontuario</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="data.js"></script>
+<script>
+// Cache busting: carica data.js con versione dal server
+(async()=>{
+  let v=Date.now(); // fallback se il server non risponde
+  try{const d=await fetch('/api/version',{cache:'no-store'}).then(r=>r.json());if(d.v)v=d.v;}catch(e){}
+  const s=document.createElement('script');
+  s.src='data.js?v='+v;
+  s.onload=()=>{if(typeof initApp==='function')initApp();};
+  document.head.appendChild(s);
+})();
+</script>
 <style>
 :root{--r:#C0392B;--r2:#922B21;--rl:#FDEAEA;--rm:#F5C6C2;--crema:#FAF8F5;--grigio:#F0ECE6;--bordo:#DDD8D0;--testo:#1C1917;--muted:#78716C;--shadow:0 2px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.14);--green:#16a34a;--greenl:#dcfce7;--amber:#f59e0b;--amberl:#fef3c7}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -757,7 +767,6 @@ function toggleForma(el){filterForma=(filterForma===el.dataset.ftype)?null:el.da
 function toggleDisp(el){filterDispOnly=!filterDispOnly;el.classList.toggle('on',filterDispOnly);renderList();}
 
 document.getElementById('searchInput').addEventListener('input',e=>{searchQ=e.target.value;document.getElementById('searchClear').classList.toggle('vis',searchQ.length>0);renderList();});
-window.onload=initApp;
 </script>
 </body>
 </html>
