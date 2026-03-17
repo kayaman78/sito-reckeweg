@@ -1,20 +1,13 @@
 services:
   sito-reckeweg:
-    image: ghcr.io/kayaman78/sito-reckeweg:${IMAGE_TAG:-latest}
+    image: ghcr.io/kayaman78/sito-reckeweg:latest
     container_name: sito-reckeweg
     restart: always
     environment:
       PORT: 3000
       DATA_DIR: /app/data
-      MAX_BACKUPS: ${MAX_BACKUPS:-20}
+      MAX_BACKUPS: 10
     volumes:
-      - type: bind
-        source: ${DATA_PATH:-/srv/docker/sito-reckeweg}
-        target: /app/data
+      - /srv/docker/sito-reckeweg:/app/data
     networks:
       - kayabridge
-
-networks:
-  kayabridge:
-    name: ${NETWORK_NAME:-kayabridge}
-    external: true
