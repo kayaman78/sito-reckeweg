@@ -22,7 +22,7 @@ function generateDataJs(reason) {
   }
   try {
     const raw = fs.readFileSync(JSON_FILE, 'utf8');
-    JSON.parse(raw); // valida prima di scrivere
+    JSON.parse(raw);
     fs.writeFileSync(DATAJS_FILE, `const RIMEDI = ${raw};\n`, 'utf8');
     console.log(`✅ data.js rigenerato [${reason}] — ${Math.round(raw.length / 1024)} KB`);
     return true;
@@ -32,7 +32,7 @@ function generateDataJs(reason) {
   }
 }
 
-// ── File watcher: rigenera se rimedi.json cambia sul bind mount ───────
+// ── Watcher: rigenera se rimedi.json cambia sul bind mount ────────────
 let watchDebounce = null;
 fs.watch(DATA_DIR, (event, filename) => {
   if (filename !== 'rimedi.json') return;
@@ -40,24 +40,26 @@ fs.watch(DATA_DIR, (event, filename) => {
   watchDebounce = setTimeout(() => generateDataJs('file changed'), 500);
 });
 
-// Genera subito all'avvio
 generateDataJs('startup');
 
 // ── Middleware ────────────────────────────────────────────────────────
 app.use(express.json({ limit: '50mb' }));
 
-// data.js dal bind mount (aggiornato dinamicamente)
+// data.js dal bind mount — no cache
 app.get('/data.js', (_req, res) => {
-  if (!fs.existsSync(DATAJS_FILE)) {
-    return res.status(503).send('// data.js non ancora disponibile — carica rimedi.json\n');
-  }
+  if (!fs.existsSync(DATAJS_FILE))
+    return res.status(503).send('// data.js non disponibile — carica rimedi.json\n');
   res.setHeader('Content-Type', 'application/javascript');
-  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(DATAJS_FILE);
 });
 
-// File statici (index.html) dall'immagine
-app.use(express.static(path.join(__dirname, 'public')));
+// File statici (index.html) — no cache per vedere subito i rebuild
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+}));
 
 // ── API ───────────────────────────────────────────────────────────────
 app.get('/api/ping', (_req, res) => res.json({ ok: true }));
@@ -67,7 +69,6 @@ app.post('/api/save', (req, res) => {
   if (!Array.isArray(data))
     return res.status(400).json({ ok: false, error: 'Payload deve essere un array JSON' });
 
-  // Backup automatico
   if (fs.existsSync(JSON_FILE)) {
     const ts  = new Date().toISOString().replace(/\D/g, '').slice(0, 15);
     fs.copyFileSync(JSON_FILE, path.join(DATA_DIR, `rimedi_bak_${ts}.json`));
@@ -79,9 +80,7 @@ app.post('/api/save', (req, res) => {
   }
 
   fs.writeFileSync(JSON_FILE, JSON.stringify(data, null, 2), 'utf8');
-  // Il watcher lo rileverà e rigenererà data.js — ma lo forziamo subito
   generateDataJs('api/save');
-
   console.log(`💾 Salvati ${data.length} rimedi`);
   res.json({ ok: true, rimedi: data.length });
 });
