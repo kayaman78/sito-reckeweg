@@ -1,6 +1,6 @@
 services:
   reckeweg:
-    image: ghcr.io/${GHCR_ORG}/reckeweg:${IMAGE_TAG:-latest}
+    image: ghcr.io/kayaman78/sito-reckeweg:${IMAGE_TAG:-latest}
     container_name: reckeweg
     restart: unless-stopped
     environment:

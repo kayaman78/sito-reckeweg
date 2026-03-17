@@ -1,11 +1,14 @@
-# docker-reckeweg
+# sito-reckeweg
 
 Prontuario omeopatico Dr. Reckeweg.
+
+**GitHub:** https://github.com/kayaman78/sito-reckeweg  
+**Immagine:** `ghcr.io/kayaman78/sito-reckeweg:latest`
 
 ## Struttura repo
 
 ```
-docker-reckeweg/
+sito-reckeweg/
 ├── .env.example
 ├── docker-compose.yml
 └── docker/
@@ -19,13 +22,13 @@ docker-reckeweg/
 ## Dati (bind mount)
 
 ```
-/srv/docker/reckeweg/       ← DATA_PATH
-    rimedi.json             ← sorgente dati
-    data.js                 ← generato automaticamente
+/srv/docker/reckeweg/
+    rimedi.json             ← sorgente dati (master)
+    data.js                 ← generato automaticamente, non toccare
     rimedi_bak_*.json       ← backup automatici da edit inline
 ```
 
-`rimedi.json` e i backup non entrano mai in git.
+`rimedi.json` e backup non entrano mai in git.
 
 Il server rileva automaticamente le modifiche a `rimedi.json`:
 basta copiare il nuovo file nella cartella, `data.js` si rigenera in ~1 secondo senza restart.
@@ -33,9 +36,9 @@ basta copiare il nuovo file nella cartella, `data.js` si rigenera in ~1 secondo 
 ## Deploy
 
 ```bash
-git clone https://forgejo.tuoserver/tuaorg/docker-reckeweg
-cd docker-reckeweg
-cp .env.example .env        # imposta GHCR_ORG e DATA_PATH
+git clone https://github.com/kayaman78/sito-reckeweg
+cd sito-reckeweg
+cp .env.example .env
 
 mkdir -p /srv/docker/reckeweg
 cp /percorso/rimedi.json /srv/docker/reckeweg/
@@ -48,8 +51,7 @@ NPM raggiunge il container come `http://reckeweg:3000` sulla rete `kayabridge`.
 ## Aggiornare l'HTML
 
 ```bash
-# sul repo locale
-vim docker/public/index.html
+# modifica docker/public/index.html, fai push
 git push
 # Komodo: build → push ghcr → redeploy
 docker compose pull && docker compose up -d
@@ -64,16 +66,16 @@ cp nuovo_rimedi.json /srv/docker/reckeweg/rimedi.json
 
 ## Variabili d'ambiente
 
-| Variabile      | Default              | Descrizione                    |
-|----------------|----------------------|--------------------------------|
-| `GHCR_ORG`     | —                    | Org su ghcr.io                 |
-| `IMAGE_TAG`    | `latest`             | Tag immagine                   |
-| `DATA_PATH`    | `/srv/docker/reckeweg` | Bind mount host              |
-| `NETWORK_NAME` | `kayabridge`         | Network esterno NPM            |
-| `MAX_BACKUPS`  | `20`                 | Backup automatici da tenere    |
+| Variabile      | Default                 | Descrizione                 |
+|----------------|-------------------------|-----------------------------|
+| `IMAGE_TAG`    | `latest`                | Tag immagine                |
+| `DATA_PATH`    | `/srv/docker/reckeweg`  | Bind mount host             |
+| `NETWORK_NAME` | `kayabridge`            | Network esterno NPM         |
+| `MAX_BACKUPS`  | `20`                    | Backup automatici da tenere |
 
 ## Komodo build
 
+- Repository: `https://github.com/kayaman78/sito-reckeweg`
 - Context: `docker/`
 - Dockerfile: `docker/Dockerfile`
-- Push: `ghcr.io/${GHCR_ORG}/reckeweg:latest`
+- Push: `ghcr.io/kayaman78/sito-reckeweg:latest`
