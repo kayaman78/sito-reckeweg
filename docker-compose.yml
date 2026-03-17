@@ -1,8 +1,8 @@
 services:
-  reckeweg:
+  sito-reckeweg:
     image: ghcr.io/kayaman78/sito-reckeweg:${IMAGE_TAG:-latest}
-    container_name: reckeweg
-    restart: unless-stopped
+    container_name: sito-reckeweg
+    restart: always
     environment:
       PORT: 3000
       DATA_DIR: /app/data
