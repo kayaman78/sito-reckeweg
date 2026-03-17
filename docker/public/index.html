@@ -159,6 +159,12 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 .pot-rimedio-nome{font-size:.8rem;color:var(--muted);font-style:italic;margin-bottom:3px}
 .pot-prop{font-size:.88rem;line-height:1.55;color:var(--testo)}
 .pot-prop.empty{color:var(--muted);font-style:italic}
+/* NOTE */
+.note-box{background:var(--amberl);border-left:3px solid var(--amber);border-radius:0 8px 8px 0;padding:13px 16px;font-size:.9rem;line-height:1.7;color:var(--testo);min-height:2em}
+.note-placeholder{color:var(--muted);font-style:italic;font-size:.9rem}
+/* badge editabile nelle associazioni */
+.assoc-badge-edit{background:var(--rl);color:var(--r);border:1px solid var(--rm);border-radius:4px;padding:2px 6px;font-family:'DM Mono',monospace;font-size:.72rem;min-width:32px;text-align:center;display:inline-block;cursor:text}
+.assoc-badge-edit:focus{outline:2px solid var(--amber);background:white}
 /* campo nome ingrediente editabile nell'entry */
 .pot-ing-nome{font-size:.8rem;font-weight:600;color:var(--testo);margin-bottom:2px}
 
@@ -168,6 +174,7 @@ body.edit-mode [data-path]{
   outline:1px dashed var(--amber);
   border-radius:3px;
   background:var(--amberl) !important;
+  color:var(--testo) !important;
   cursor:text;
   min-height:1em;
   transition:outline .1s,background .1s
@@ -175,6 +182,7 @@ body.edit-mode [data-path]{
 body.edit-mode [data-path]:focus{
   outline:2px solid var(--amber);
   background:white !important;
+  color:var(--testo) !important;
   box-shadow:0 0 0 3px rgba(245,158,11,.2)
 }
 /* Barra salvataggio */
@@ -380,6 +388,9 @@ function showDetail(idx){
   const inC=compareList.some(x=>x.idx===idx);
   const btnCmp=`<button class="btn-compare ${inC?'added':''}" onclick="toggleCompare(${idx})" id="cmpBtn-${idx}">${inC?'✓ Nel confronto':'+ Confronta'}</button>`;
 
+  const noteContent=r.note||'';
+  const noteHTML=`<div class="dsec"><div class="dsec-label">Note</div><div class="note-box" data-path="${idx}.note" contenteditable="false">${noteContent||'<span class=\"note-placeholder\">Aggiungi note — clicca ✏️ per modificare</span>'}</div></div>`;
+  const dispToggle=editMode?`<div class="dsec"><div class="dsec-label">Disponibilità</div><label style="display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer"><input type="checkbox" id="disp-${idx}" ${r.disponibile!==false?'checked':''} onchange="toggleDisponibile(${idx},this.checked)"> Disponibile (deseleziona se fuori produzione)</label></div>`:'';
   document.getElementById('detail').innerHTML=`
     <div class="dcard">
       <div class="dcard-header">
@@ -395,8 +406,10 @@ function showDetail(idx){
         ${sintomiHTML}
         ${forme.length?`<div class="dsec"><div class="dsec-label">Composizione</div>${compHTML}</div>`:''}
         ${posoHTML?`<div class="dsec"><div class="dsec-label">Posologia</div>${posoHTML}</div>`:''}
-        ${renderAssoc(r)}
+        ${renderAssoc(r,idx)}
         ${backHTML}
+        ${noteHTML}
+        ${dispToggle}
       </div>
     </div>`;
 
@@ -506,7 +519,8 @@ function syncEdit(el){
     if(obj===undefined||obj===null)return;
   }
   const lastKey=parts[parts.length-1];
-  obj[lastKey]=val;
+  // campo note: se vuoto salva null per non sporcare il JSON
+  obj[lastKey]= (lastKey==='note' && !val) ? null : val;
   // Marca come modificato
   document.getElementById('editMsg').textContent='✏️ Modifiche non salvate — ricorda di salvare';
   document.getElementById('editMsg').style.color='#7c2d12';
@@ -529,6 +543,14 @@ async function saveEdits(){
     document.getElementById('editMsg').style.color='#7f1d1d';
   }
   btn.disabled=false;btn.textContent='💾 Salva';
+}
+
+function toggleDisponibile(idx,val){
+  RIMEDI[idx].disponibile=val;
+  // aggiorna badge nella lista
+  renderList();
+  document.getElementById('editMsg').textContent='✏️ Modifiche non salvate — ricorda di salvare';
+  document.getElementById('editMsg').style.color='#7c2d12';
 }
 
 function cancelEdit(){
@@ -595,12 +617,18 @@ function closeCompare(){document.getElementById('cmpOverlay').classList.remove('
 function cmpOverlayClick(e){if(e.target.id==='cmpOverlay')closeCompare();}
 
 // ── Associazioni ───────────────────────────────────────────────────────
-function renderAssoc(r){
+function renderAssoc(r,ridx){
   if(!(r.associazioni||[]).length){
     if(r.note_associazioni)return`<div class="dsec"><div class="dsec-label">Note associazioni</div><div class="indicazioni" style="font-size:.88rem">${r.note_associazioni}</div></div>`;
     return'';
   }
-  return`<div class="dsec"><div class="dsec-label">Associazioni consigliate</div>`+r.associazioni.map(a=>`<div class="assoc-row"><div class="assoc-cond">${a.condizione}</div><div class="assoc-badges">${(a.rimedi||[]).map(c=>`<span class="assoc-badge" onclick="goToRimedio('${c}')">${c}</span>`).join('')}</div></div>`).join('')+`</div>`;
+  return`<div class="dsec"><div class="dsec-label">Associazioni consigliate</div>`+r.associazioni.map((a,ai)=>`<div class="assoc-row">
+    <div class="assoc-cond">${a.condizione}</div>
+    <div class="assoc-badges">${(a.rimedi||[]).map((c,ri)=>editMode
+      ?`<span class="assoc-badge-edit" data-path="${ridx}.associazioni.${ai}.rimedi.${ri}" contenteditable="false">${c}</span>`
+      :`<span class="assoc-badge" onclick="goToRimedio('${c}')">${c}</span>`
+    ).join('')}</div>
+  </div>`).join('')+`</div>`;
 }
 function switchForma(el,f){const b=el.closest('.dcard-body');b.querySelectorAll('.forma-tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');b.querySelectorAll('.ing-panel').forEach(p=>p.style.display=p.dataset.forma===f?'block':'none');}
 
