@@ -24,6 +24,7 @@ function generateDataJs(reason) {
     const raw = fs.readFileSync(JSON_FILE, 'utf8');
     JSON.parse(raw);
     fs.writeFileSync(DATAJS_FILE, `const RIMEDI = ${raw};\n`, 'utf8');
+    dataVersion = Date.now();
     console.log(`✅ data.js rigenerato [${reason}] — ${Math.round(raw.length / 1024)} KB`);
     return true;
   } catch (e) {
@@ -39,6 +40,9 @@ fs.watch(DATA_DIR, (event, filename) => {
   clearTimeout(watchDebounce);
   watchDebounce = setTimeout(() => generateDataJs('file changed'), 500);
 });
+
+// timestamp dell'ultimo aggiornamento di data.js (usato per cache busting)
+let dataVersion = Date.now();
 
 generateDataJs('startup');
 
@@ -63,6 +67,10 @@ app.use(express.static(path.join(__dirname, 'public'), {
 
 // ── API ───────────────────────────────────────────────────────────────
 app.get('/api/ping', (_req, res) => res.json({ ok: true }));
+app.get('/api/version', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({ v: dataVersion });
+});
 
 app.post('/api/auth', (req, res) => {
   const editPwd = process.env.EDIT_PASSWORD;
