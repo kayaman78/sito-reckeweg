@@ -441,7 +441,7 @@ function showDetail(idx){
   const btnCmp=`<button class="btn-compare ${inC?'added':''}" onclick="toggleCompare(${idx})" id="cmpBtn-${idx}">${inC?'✓ Nel confronto':'+ Confronta'}</button>`;
 
   const noteContent=r.note||'';
-  const noteHTML=`<div class="dsec"><div class="dsec-label">Note</div><div class="note-box" data-path="${idx}.note" contenteditable="false">${noteContent||'<span class=\"note-placeholder\">Aggiungi note — clicca ✏️ per modificare</span>'}</div></div>`;
+  const noteHTML=`<div class="dsec"><div class="dsec-label">Note</div><span class="note-box" data-path="${idx}.note" contenteditable="false" style="display:block">${noteContent||''}</span>${!noteContent?`<div class="note-placeholder" style="font-size:.88rem;color:var(--muted);font-style:italic;margin-top:6px">Attiva ✏️ per aggiungere note</div>`:''}</div></div>`;
   const dispToggle=`<div class="dsec disp-sec"><div class="dsec-label">Disponibilità</div><label style="display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer"><input type="checkbox" id="disp-${idx}" ${r.disponibile!==false?'checked':''} onchange="toggleDisponibile(${idx},this.checked)"> Disponibile (deseleziona se fuori produzione)</label></div>`;
   document.getElementById('detail').innerHTML=`
     <div class="dcard">
@@ -538,8 +538,11 @@ async function toggleEditMode(){
   const btn=document.getElementById('btnEdit');
   btn.classList.toggle('active',editMode);
   btn.textContent=editMode?'✏️ ON':'✏️';
-  if(editMode)applyEditMode();
-  else removeEditMode();
+  if(editMode){
+    // ri-renderizza il rimedio aperto così tutti i campi hanno data-path corretto
+    if(activeIdx!==null)showDetail(activeIdx);
+    else applyEditMode();
+  }else removeEditMode();
 }
 
 function applyEditMode(){
@@ -573,12 +576,13 @@ function syncEdit(el){
   let obj=RIMEDI[ridx];
   for(let i=1;i<parts.length-1;i++){
     const k=parts[i];
-    obj=obj[k];
+    obj=Array.isArray(obj)?obj[parseInt(k,10)]:obj[k];
     if(obj===undefined||obj===null)return;
   }
   const lastKey=parts[parts.length-1];
+  const finalKey=Array.isArray(obj)?parseInt(lastKey,10):lastKey;
   // campo note: se vuoto salva null per non sporcare il JSON
-  obj[lastKey]= (lastKey==='note' && !val) ? null : val;
+  obj[finalKey]= (lastKey==='note' && !val) ? null : val;
   // Marca come modificato
   document.getElementById('editMsg').textContent='✏️ Modifiche non salvate — ricorda di salvare';
   document.getElementById('editMsg').style.color='#7c2d12';
