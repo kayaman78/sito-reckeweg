@@ -41,6 +41,9 @@ fs.watch(DATA_DIR, (event, filename) => {
   watchDebounce = setTimeout(() => generateDataJs('file changed'), 500);
 });
 
+// timestamp dell'ultimo aggiornamento di data.js (usato per cache busting)
+let dataVersion = Date.now();
+
 generateDataJs('startup');
 
 // timestamp dell'ultimo aggiornamento di data.js (usato per cache busting)
