@@ -70,7 +70,31 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 
 /* SINTOMI */
 .sintomi-grid{display:flex;flex-wrap:wrap;gap:5px}
-.sintomo-chip{padding:3px 9px;border-radius:12px;font-size:.76rem;background:var(--grigio);color:var(--muted);border:1px solid var(--bordo)}
+.sintomo-chip{padding:3px 9px;border-radius:12px;font-size:.76rem;background:var(--grigio);color:var(--muted);border:1px solid var(--bordo);cursor:pointer;transition:all .15s;user-select:none}
+.sintomo-chip:hover{background:var(--rl);color:var(--r);border-color:var(--rm)}
+.sintomo-chip.active{background:var(--r);color:white;border-color:var(--r)}
+/* pill filtro attivo nella list-info */
+.filter-pill{display:inline-flex;align-items:center;gap:4px;background:var(--rl);color:var(--r);border:1px solid var(--rm);border-radius:12px;padding:2px 8px;font-size:.75rem;font-weight:600}
+.filter-pill button{background:none;border:none;color:var(--r);cursor:pointer;font-size:.85rem;line-height:1;padding:0 0 0 2px}
+/* INDICE SINTOMI */
+.idx-overlay{display:none;position:fixed;inset:0;background:rgba(28,25,23,.55);z-index:600;overflow-y:auto;padding:24px 16px}
+.idx-overlay.open{display:block}
+.idx-card{background:white;border-radius:16px;max-width:780px;margin:0 auto;box-shadow:var(--shadow-lg);overflow:hidden}
+.idx-header{background:var(--r);padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
+.idx-header h3{font-family:'Crimson Pro',serif;font-size:1.3rem;color:white;font-weight:600}
+.idx-close{background:rgba(255,255,255,.2);border:none;border-radius:50%;width:32px;height:32px;color:white;cursor:pointer;font-size:1rem}
+.idx-search{padding:12px 24px;border-bottom:1px solid var(--bordo);background:var(--crema)}
+.idx-search input{width:100%;padding:8px 12px;border:1px solid var(--bordo);border-radius:8px;font-size:.9rem;font-family:'Source Sans 3',sans-serif;outline:none;background:white}
+.idx-search input:focus{border-color:var(--r)}
+.idx-body{padding:16px 24px 24px}
+.idx-letter{margin-bottom:20px}
+.idx-letter-head{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:2px;color:var(--r);font-weight:600;text-transform:uppercase;padding:6px 0 8px;border-bottom:1px solid var(--rl);margin-bottom:8px}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px}
+.idx-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:var(--crema);border:1px solid var(--bordo);cursor:pointer;transition:all .15s;font-size:.85rem}
+.idx-chip:hover{border-color:var(--r);background:var(--rl)}
+.idx-count{font-family:'DM Mono',monospace;font-size:.68rem;background:var(--r);color:white;border-radius:10px;padding:1px 6px;min-width:18px;text-align:center}
+.btn-indice{background:rgba(255,255,255,.18);border:none;border-radius:8px;color:white;padding:8px 11px;cursor:pointer;font-size:.85rem;white-space:nowrap;transition:background .15s}
+.btn-indice:hover{background:rgba(255,255,255,.28)}
 
 /* INGREDIENTI */
 .ing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px}
@@ -218,6 +242,7 @@ mark{background:rgba(192,57,43,.15);color:inherit;border-radius:2px;padding:0 1p
     <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
   </div>
   <button class="btn-filter" id="btnFilter" onclick="toggleFilters()">Filtri</button>
+  <button class="btn-indice" onclick="openIndice()" title="Indice sintomi">☰ Indice</button>
   <button class="btn-edit" id="btnEdit" onclick="toggleEditMode()" title="Modalità modifica">✏️</button>
 </header>
 
@@ -242,7 +267,7 @@ mark{background:rgba(192,57,43,.15);color:inherit;border-radius:2px;padding:0 1p
         </div>
       </div>
     </div>
-    <div class="list-info"><span id="listCount">— rimedi</span></div>
+    <div class="list-info"><span id="listCount">— rimedi</span><span id="sintomoActivePill"></span></div>
     <div class="remedy-list" id="remedyList"></div>
   </div>
 
@@ -264,6 +289,20 @@ mark{background:rgba(192,57,43,.15);color:inherit;border-radius:2px;padding:0 1p
   <button class="bnav-btn active" id="bnav-lista" onclick="mobileTab('lista')">☰ Lista</button>
   <button class="bnav-btn" id="bnav-dettaglio" onclick="mobileTab('dettaglio')">📋 Dettaglio</button>
 </nav>
+
+<!-- Indice sintomi -->
+<div class="idx-overlay" id="idxOverlay" onclick="idxOverlayClick(event)">
+  <div class="idx-card">
+    <div class="idx-header">
+      <h3>Indice sintomi</h3>
+      <button class="idx-close" onclick="closeIndice()">✕</button>
+    </div>
+    <div class="idx-search">
+      <input type="text" id="idxSearch" placeholder="Filtra sintomi…" oninput="renderIndice(this.value)" autocomplete="off">
+    </div>
+    <div class="idx-body" id="idxBody"></div>
+  </div>
+</div>
 
 <!-- Modale ingrediente -->
 <div class="ing-overlay" id="ingOverlay" onclick="ingOverlayClick(event)">
@@ -298,16 +337,23 @@ mark{background:rgba(192,57,43,.15);color:inherit;border-radius:2px;padding:0 1p
 
 <script>
 // ── Stato ──────────────────────────────────────────────────────────────
-let searchQ='',filterSistema=null,filterForma=null,filterDispOnly=false,activeIdx=null;
+let searchQ='',filterSistema=null,filterForma=null,filterDispOnly=false,filterSintomo=null,activeIdx=null;
 let isMobile=window.innerWidth<=700,compareList=[];
 let editMode=false,serverAvail=false;
 
 // ING_INDEX: nome → [{codice,rimNome,ridx,forma,ingidx,tipo,potenza,proprieta}]
-const ING_INDEX={},BACKLINKS={},ING_SEARCH={};
+const ING_INDEX={},BACKLINKS={},ING_SEARCH={},SINTOMI_INDEX={};
 
 // ── Init ───────────────────────────────────────────────────────────────
 function initApp(){
   if(typeof RIMEDI==='undefined'){alert('data.js non trovato!');return;}
+  // Costruisce SINTOMI_INDEX: sintomo → [codici]
+  RIMEDI.forEach(r=>{
+    (r.sintomi_indice||[]).forEach(s=>{
+      if(!SINTOMI_INDEX[s])SINTOMI_INDEX[s]=[];
+      if(!SINTOMI_INDEX[s].includes(r.codice))SINTOMI_INDEX[s].push(r.codice);
+    });
+  });
   RIMEDI.forEach((r,ridx)=>{
     Object.entries(r.composizione||{}).forEach(([forma,list])=>{
       (list||[]).forEach((ing,ingidx)=>{
@@ -349,9 +395,13 @@ function renderList(){
       for(const nl of Object.keys(ING_SEARCH))if(nl.includes(t)&&ING_SEARCH[nl].has(r.codice))return true;
       return false;
     });
-    return(matchRim||matchIng)&&(!filterSistema||r.sistema===filterSistema)&&(!filterForma||(r.forma||[]).includes(filterForma))&&(!filterDispOnly||r.disponibile===false);
+    const matchSintomo=!filterSintomo||(r.sintomi_indice||[]).includes(filterSintomo);
+    return(matchRim||matchIng)&&matchSintomo&&(!filterSistema||r.sistema===filterSistema)&&(!filterForma||(r.forma||[]).includes(filterForma))&&(!filterDispOnly||r.disponibile===false);
   });
   document.getElementById('listCount').textContent=visible.length+' rimedi';
+  const pill=document.getElementById('sintomoActivePill');
+  if(filterSintomo){pill.innerHTML=`<span class="filter-pill">${filterSintomo}<button onclick="clearSintomo()" title="Rimuovi filtro">✕</button></span>`;}
+  else{pill.innerHTML='';}
   document.getElementById('remedyList').innerHTML=visible.map(r=>{
     const ri=RIMEDI.indexOf(r);
     const prev=(r.indicazioni||(r.sintomi_indice||[]).slice(0,3).join(', ')||'').substring(0,65);
@@ -384,7 +434,7 @@ function showDetail(idx){
 
   const appBadges=(r.tutti_apparati||[]).map(a=>`<span class="app-badge">${a}</span>`).join('');
   const sintomiHTML=(r.sintomi_indice||[]).length
-    ?`<div class="dsec"><div class="dsec-label">Indicazioni terapeutiche</div><div class="sintomi-grid">${r.sintomi_indice.map(s=>`<span class="sintomo-chip">${s}</span>`).join('')}</div></div>`:'' ;
+    ?`<div class="dsec"><div class="dsec-label">Indicazioni terapeutiche</div><div class="sintomi-grid">${r.sintomi_indice.map(s=>`<span class="sintomo-chip${filterSintomo===s?' active':''}" onclick="filterBySintomo('${escJs(s)}')">${s}</span>`).join('')}</div></div>`:'' ;
   const bl=BACKLINKS[r.codice]||[];
   const backHTML=bl.length?`<div class="dsec"><div class="dsec-label">Consigliato in associazione da</div><div class="backlink-wrap">${bl.map(c=>`<span class="assoc-badge" onclick="goToRimedio('${c}')">${c}</span>`).join('')}</div></div>`:'';
   const inC=compareList.some(x=>x.idx===idx);
@@ -623,6 +673,59 @@ function openCompare(){
 }
 function closeCompare(){document.getElementById('cmpOverlay').classList.remove('open');}
 function cmpOverlayClick(e){if(e.target.id==='cmpOverlay')closeCompare();}
+
+// ── Filtro per sintomo ─────────────────────────────────────────────────
+function filterBySintomo(s){
+  filterSintomo=(filterSintomo===s)?null:s;
+  // pulisce altri filtri per non creare confusione
+  searchQ='';
+  document.getElementById('searchInput').value='';
+  document.getElementById('searchClear').classList.remove('vis');
+  renderList();
+  // su mobile torna alla lista
+  if(isMobile)mobileTab('lista');
+}
+function clearSintomo(){filterSintomo=null;renderList();}
+
+// ── Indice sintomi ─────────────────────────────────────────────────────
+function openIndice(){
+  renderIndice('');
+  document.getElementById('idxSearch').value='';
+  document.getElementById('idxOverlay').classList.add('open');
+}
+function closeIndice(){document.getElementById('idxOverlay').classList.remove('open');}
+function idxOverlayClick(e){if(e.target.id==='idxOverlay')closeIndice();}
+
+function renderIndice(q){
+  const filter=q.trim().toLowerCase();
+  // Tutti i sintomi unici ordinati A-Z
+  const tutti=Object.keys(SINTOMI_INDEX).sort((a,b)=>a.localeCompare(b,'it'));
+  const filtrati=filter?tutti.filter(s=>s.toLowerCase().includes(filter)):tutti;
+
+  // Raggruppa per lettera iniziale
+  const gruppi={};
+  filtrati.forEach(s=>{
+    const l=s[0].toUpperCase();
+    (gruppi[l]=gruppi[l]||[]).push(s);
+  });
+
+  if(!filtrati.length){
+    document.getElementById('idxBody').innerHTML='<div style="color:var(--muted);font-size:.9rem;padding:16px 0">Nessun sintomo trovato.</div>';
+    return;
+  }
+
+  document.getElementById('idxBody').innerHTML=Object.keys(gruppi).sort().map(l=>`
+    <div class="idx-letter">
+      <div class="idx-letter-head">${l}</div>
+      <div class="idx-chips">${gruppi[l].map(s=>{
+        const n=SINTOMI_INDEX[s].length;
+        return`<div class="idx-chip" onclick="closeIndice();filterBySintomo('${escJs(s)}')">
+          <span>${s}</span>
+          <span class="idx-count" title="${SINTOMI_INDEX[s].join(', ')}">${n}</span>
+        </div>`;
+      }).join('')}</div>
+    </div>`).join('');
+}
 
 // ── Associazioni ───────────────────────────────────────────────────────
 function renderAssoc(r,ridx){
