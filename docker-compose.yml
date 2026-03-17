@@ -1,0 +1,13 @@
+services:
+  reckeweg:
+    image: ghcr.io/${GHCR_ORG}/reckeweg:${IMAGE_TAG:-latest}
+    container_name: reckeweg
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      DATA_DIR: /app/data
+      MAX_BACKUPS: 20
+    volumes:
+      - ${DATA_PATH}:/app/data
+    ports:
+      - "${BIND_HOST:-127.0.0.1}:${APP_PORT:-3000}:3000"

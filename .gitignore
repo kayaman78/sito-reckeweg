@@ -1,0 +1,15 @@
+# Env con valori reali
+.env
+
+# Dati — vivono solo sul volume del server, mai in git
+*.json
+data.js
+docker/data/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
