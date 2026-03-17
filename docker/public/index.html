@@ -472,8 +472,14 @@ function closeIngOverlay(){document.getElementById('ingOverlay').classList.remov
 function ingOverlayClick(e){if(e.target.id==='ingOverlay')closeIngOverlay();}
 
 // ── Edit mode ──────────────────────────────────────────────────────────
-function toggleEditMode(){
-  if(!serverAvail){alert('Server non disponibile.\nAvvia server.py per usare la modalità modifica.');return;}
+async function toggleEditMode(){
+  if(!serverAvail){alert('Server non disponibile.');return;}
+  if(!editMode){
+    const pwd=prompt('Password modifica:');
+    if(!pwd)return;
+    const ok=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pwd})}).then(r=>r.json()).then(d=>d.ok).catch(()=>false);
+    if(!ok){alert('Password errata.');return;}
+  }
   editMode=!editMode;
   document.body.classList.toggle('edit-mode',editMode);
   document.getElementById('editBar').classList.toggle('vis',editMode);
