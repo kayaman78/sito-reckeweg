@@ -64,6 +64,12 @@ app.use(express.static(path.join(__dirname, 'public'), {
 // ── API ───────────────────────────────────────────────────────────────
 app.get('/api/ping', (_req, res) => res.json({ ok: true }));
 
+app.post('/api/auth', (req, res) => {
+  const editPwd = process.env.EDIT_PASSWORD;
+  if (!editPwd) return res.json({ ok: false }); // se non configurata, edit disabilitato
+  res.json({ ok: req.body?.pwd === editPwd });
+});
+
 app.post('/api/save', (req, res) => {
   const data = req.body;
   if (!Array.isArray(data))
