@@ -9,7 +9,7 @@ services:
       MAX_BACKUPS: ${MAX_BACKUPS:-20}
     volumes:
       - type: bind
-        source: ${DATA_PATH:-/srv/docker/reckeweg}
+        source: ${DATA_PATH:-/srv/docker/sito-reckeweg}
         target: /app/data
     networks:
       - kayabridge
