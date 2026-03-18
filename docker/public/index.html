@@ -7,9 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script>
-// Cache busting: carica data.js con versione dal server
 (async()=>{
-  let v=Date.now(); // fallback se il server non risponde
+  let v=Date.now();
   try{const d=await fetch('/api/version',{cache:'no-store'}).then(r=>r.json());if(d.v)v=d.v;}catch(e){}
   const s=document.createElement('script');
   s.src='data.js?v='+v;
@@ -55,8 +54,10 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 .remedy-list{overflow-y:auto;flex:1;overscroll-behavior:contain}
 .remedy-item{padding:11px 14px;border-bottom:1px solid var(--bordo);cursor:pointer;transition:background .1s;display:flex;align-items:flex-start;gap:10px}
 .remedy-item.active{background:var(--rl);border-left:3px solid var(--r)}
-.item-code{background:var(--r);color:white;border-radius:5px;padding:2px 7px;font-family:'DM Mono',monospace;font-size:.72rem;font-weight:500;min-width:38px;text-align:center;flex-shrink:0;margin-top:2px}
+.item-badge-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:2px}
+.item-code{background:var(--r);color:white;border-radius:5px;padding:2px 7px;font-family:'DM Mono',monospace;font-size:.72rem;font-weight:500;min-width:38px;text-align:center}
 .item-code.fuori{background:var(--muted)}
+.item-flag{font-size:.85rem;line-height:1}
 .item-nome{font-family:'Crimson Pro',serif;font-size:1rem;font-weight:600;line-height:1.3}
 .item-preview{font-size:.77rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tag{padding:1px 6px;border-radius:10px;font-size:.67rem;background:var(--grigio);color:var(--muted);margin-top:4px;display:inline-block}
@@ -66,7 +67,8 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 .detail-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:var(--muted)}
 .dcard{max-width:780px;margin:20px auto;padding:0 16px 40px}
 .dcard-header{background:var(--r);border-radius:12px 12px 0 0;padding:20px 24px;display:flex;align-items:center;gap:18px}
-.dcard-code{font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;color:white;background:rgba(0,0,0,.15);border-radius:8px;padding:6px 16px;letter-spacing:1px;flex-shrink:0}
+.dcard-code{font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;color:white;background:rgba(0,0,0,.15);border-radius:8px;padding:6px 16px;letter-spacing:1px;flex-shrink:0;display:flex;align-items:center;gap:10px}
+.dcard-india{font-size:1.5rem;line-height:1;title-cursor:default}
 .dcard-title{flex:1}
 .dcard-title h2{font-family:'Crimson Pro',serif;font-size:1.45rem;font-weight:600;color:white;line-height:1.3}
 .dcard-meta{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
@@ -83,9 +85,9 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 .sintomo-chip{padding:3px 9px;border-radius:12px;font-size:.76rem;background:var(--grigio);color:var(--muted);border:1px solid var(--bordo);cursor:pointer;transition:all .15s;user-select:none}
 .sintomo-chip:hover{background:var(--rl);color:var(--r);border-color:var(--rm)}
 .sintomo-chip.active{background:var(--r);color:white;border-color:var(--r)}
-/* pill filtro attivo nella list-info */
 .filter-pill{display:inline-flex;align-items:center;gap:4px;background:var(--rl);color:var(--r);border:1px solid var(--rm);border-radius:12px;padding:2px 8px;font-size:.75rem;font-weight:600}
 .filter-pill button{background:none;border:none;color:var(--r);cursor:pointer;font-size:.85rem;line-height:1;padding:0 0 0 2px}
+
 /* INDICE SINTOMI */
 .idx-overlay{display:none;position:fixed;inset:0;background:rgba(28,25,23,.55);z-index:600;overflow-y:auto;padding:24px 16px}
 .idx-overlay.open{display:block}
@@ -124,7 +126,13 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 
 /* ASSOCIAZIONI */
 .assoc-row{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:8px;background:var(--crema);border:1px solid var(--bordo);margin-bottom:6px}
-.assoc-cond{flex:1;font-size:.88rem;color:var(--testo)}
+/* Condizioni cliccabili → indice sintomi */
+.assoc-cond{flex:1;font-size:.88rem;color:var(--testo);cursor:pointer;border-radius:4px;padding:1px 3px;margin:-1px -3px;transition:color .12s,background .12s}
+.assoc-cond:hover{color:var(--r);background:var(--rl)}
+.assoc-cond-hint{font-size:.68rem;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;opacity:0;transition:opacity .15s}
+.assoc-row:hover .assoc-cond-hint{opacity:1}
+body.edit-mode .assoc-cond{cursor:default;pointer-events:none}
+body.edit-mode .assoc-cond:hover{color:var(--testo);background:none}
 .assoc-badges{display:flex;gap:4px;flex-wrap:wrap;flex-shrink:0}
 .assoc-badge{background:var(--r);color:white;border-radius:4px;padding:2px 8px;font-family:'DM Mono',monospace;font-size:.72rem;cursor:pointer;white-space:nowrap;user-select:none}
 .assoc-badge:hover{background:var(--r2)}
@@ -193,19 +201,21 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 .pot-rimedio-nome{font-size:.8rem;color:var(--muted);font-style:italic;margin-bottom:3px}
 .pot-prop{font-size:.88rem;line-height:1.55;color:var(--testo)}
 .pot-prop.empty{color:var(--muted);font-style:italic}
+
 /* NOTE */
 .note-box{background:var(--amberl);border-left:3px solid var(--amber);border-radius:0 8px 8px 0;padding:13px 16px;font-size:.9rem;line-height:1.7;color:var(--testo);min-height:2em}
 .note-placeholder{color:var(--muted);font-style:italic;font-size:.9rem}
+
 /* badge editabile nelle associazioni */
 .assoc-badge-edit{background:var(--rl);color:var(--r);border:1px solid var(--rm);border-radius:4px;padding:2px 6px;font-family:'DM Mono',monospace;font-size:.72rem;min-width:32px;text-align:center;display:inline-block;cursor:text}
 .assoc-badge-edit:focus{outline:2px solid var(--amber);background:white}
-/* campo nome ingrediente editabile nell'entry */
 .pot-ing-nome{font-size:.8rem;font-weight:600;color:var(--testo);margin-bottom:2px}
 
 /* ── EDIT MODE ─────────────────────────────────────────────────────── */
-/* Campi editabili - visibili solo in edit mode */
 .disp-sec{display:none}
 body.edit-mode .disp-sec{display:block}
+
+/* Campi editabili: white-space:pre-wrap per preservare gli accapo */
 body.edit-mode [data-path]{
   outline:1px dashed var(--amber);
   border-radius:3px;
@@ -213,7 +223,8 @@ body.edit-mode [data-path]{
   color:var(--testo) !important;
   cursor:text;
   min-height:1em;
-  transition:outline .1s,background .1s
+  transition:outline .1s,background .1s;
+  white-space:pre-wrap
 }
 body.edit-mode [data-path]:focus{
   outline:2px solid var(--amber);
@@ -221,6 +232,9 @@ body.edit-mode [data-path]:focus{
   color:var(--testo) !important;
   box-shadow:0 0 0 3px rgba(245,158,11,.2)
 }
+/* Anche fuori edit mode: pre-wrap per visualizzare gli accapo salvati */
+[data-path]{white-space:pre-wrap}
+
 /* Barra salvataggio */
 .edit-bar{position:fixed;top:56px;left:0;right:0;z-index:250;background:var(--amber);padding:8px 20px;display:none;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(245,158,11,.4)}
 .edit-bar.vis{display:flex}
@@ -230,7 +244,6 @@ body.edit-mode [data-path]:focus{
 .btn-eb-save{background:#1c1917;color:white}
 .btn-eb-save:disabled{opacity:.5;cursor:not-allowed}
 .btn-eb-cancel{background:rgba(0,0,0,.15);color:#1c1917}
-/* Quando la edit-bar è visibile, sposta il layout */
 body.edit-mode .layout{padding-top:calc(56px + 40px)}
 body.edit-mode .sidebar{top:calc(56px + 40px)}
 @media(max-width:700px){body.edit-mode .detail{top:calc(56px + 40px)}}
@@ -351,13 +364,37 @@ let searchQ='',filterSistema=null,filterForma=null,filterDispOnly=false,filterSi
 let isMobile=window.innerWidth<=700,compareList=[];
 let editMode=false,serverAvail=false;
 
-// ING_INDEX: nome → [{codice,rimNome,ridx,forma,ingidx,tipo,potenza,proprieta}]
 const ING_INDEX={},BACKLINKS={},ING_SEARCH={},SINTOMI_INDEX={};
+
+// ── Helpers testo ──────────────────────────────────────────────────────
+// Converte \n in <br> per visualizzare accapo nel markup HTML
+function nl2br(s){return(s||'').replace(/\n/g,'<br>');}
+
+// Legge il testo di un campo contenteditable preservando gli accapo
+// innerText converte <br> e blocchi div/p → \n automaticamente
+function getEditText(el){
+  // Normalizza eventuali <div> che Chrome inserisce alla pressione di Invio
+  let h=el.innerHTML;
+  h=h.replace(/<br\s*\/?>/gi,'\n')
+     .replace(/<\/div>/gi,'\n')
+     .replace(/<\/p>/gi,'\n')
+     .replace(/<[^>]+>/g,'');
+  // Decode entità HTML
+  const tmp=document.createElement('textarea');
+  tmp.innerHTML=h;
+  return tmp.value.replace(/\n+$/,''); // rimuove solo gli accapo finali
+}
+
+function escJs(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
+
+function markModified(){
+  document.getElementById('editMsg').textContent='✏️ Modifiche non salvate — ricorda di salvare';
+  document.getElementById('editMsg').style.color='#7c2d12';
+}
 
 // ── Init ───────────────────────────────────────────────────────────────
 function initApp(){
   if(typeof RIMEDI==='undefined'){alert('data.js non trovato!');return;}
-  // Costruisce SINTOMI_INDEX: sintomo → [codici]
   RIMEDI.forEach(r=>{
     (r.sintomi_indice||[]).forEach(s=>{
       if(!SINTOMI_INDEX[s])SINTOMI_INDEX[s]=[];
@@ -390,7 +427,6 @@ function initApp(){
     fsEl.appendChild(c);
   });
   renderList();
-  // Controlla disponibilità server per edit
   fetch('/api/ping').then(r=>r.json()).then(d=>{if(d.ok){serverAvail=true;document.getElementById('btnEdit').classList.add('ready');}}).catch(()=>{});
 }
 
@@ -415,8 +451,14 @@ function renderList(){
   document.getElementById('remedyList').innerHTML=visible.map(r=>{
     const ri=RIMEDI.indexOf(r);
     const prev=(r.indicazioni||(r.sintomi_indice||[]).slice(0,3).join(', ')||'').substring(0,65);
+    // Badge con flag India se fuori produzione ma disponibile in India
+    const flagIndia=r.disponibile===false&&r.disponibile_india
+      ?'<span class="item-flag" title="Disponibile in India (eBay)">🇮🇳</span>':'';
     return`<div class="remedy-item ${activeIdx===ri?'active':''}" onclick="showDetail(${ri})">
-      <div class="item-code ${r.disponibile===false?'fuori':''}">${r.codice}</div>
+      <div class="item-badge-wrap">
+        <div class="item-code ${r.disponibile===false?'fuori':''}">${r.codice}</div>
+        ${flagIndia}
+      </div>
       <div style="min-width:0">
         <div class="item-nome">${r.nome||'—'}</div>
         <div class="item-preview">${prev}…</div>
@@ -436,27 +478,42 @@ function showDetail(idx){
   else compHTML='<div class="forma-tabs">'+forme.map((f,i)=>`<div class="forma-tab ${i===0?'on':''}" onclick="switchForma(this,'${f}')">${f}</div>`).join('')+'</div>'+
     forme.map((f,i)=>`<div class="ing-panel" data-forma="${f}" style="${i>0?'display:none':''}">${ingGrid(r.composizione[f],r.codice,idx,f)}</div>`).join('');
 
-  // data-path="ridx.field" per i campi editabili
-  const ep=i=>`data-path="${i}`;  // shorthand
-
+  // Posologia: nl2br per preservare gli accapo
   const posoHTML=Object.entries(r.posologia||{}).filter(([,v])=>v).map(([k,v])=>
-    `<div class="poso-box"><div class="poso-forma">${k}</div><span data-path="${idx}.posologia.${k}" contenteditable="false">${v}</span></div>`).join('');
+    `<div class="poso-box"><div class="poso-forma">${k}</div><span data-path="${idx}.posologia.${k}" contenteditable="false">${nl2br(v)}</span></div>`).join('');
 
   const appBadges=(r.tutti_apparati||[]).map(a=>`<span class="app-badge">${a}</span>`).join('');
   const sintomiHTML=(r.sintomi_indice||[]).length
-    ?`<div class="dsec"><div class="dsec-label">Indicazioni terapeutiche</div><div class="sintomi-grid">${r.sintomi_indice.map(s=>`<span class="sintomo-chip${filterSintomo===s?' active':''}" onclick="filterBySintomo('${escJs(s)}')">${s}</span>`).join('')}</div></div>`:'' ;
+    ?`<div class="dsec"><div class="dsec-label">Indicazioni terapeutiche</div><div class="sintomi-grid">${r.sintomi_indice.map(s=>`<span class="sintomo-chip${filterSintomo===s?' active':''}" onclick="filterBySintomo('${escJs(s)}')">${s}</span>`).join('')}</div></div>`:'';
   const bl=BACKLINKS[r.codice]||[];
   const backHTML=bl.length?`<div class="dsec"><div class="dsec-label">Consigliato in associazione da</div><div class="backlink-wrap">${bl.map(c=>`<span class="assoc-badge" onclick="goToRimedio('${c}')">${c}</span>`).join('')}</div></div>`:'';
   const inC=compareList.some(x=>x.idx===idx);
   const btnCmp=`<button class="btn-compare ${inC?'added':''}" onclick="toggleCompare(${idx})" id="cmpBtn-${idx}">${inC?'✓ Nel confronto':'+ Confronta'}</button>`;
 
   const noteContent=r.note||'';
-  const noteHTML=`<div class="dsec"><div class="dsec-label">Note</div><span class="note-box" data-path="${idx}.note" contenteditable="false" style="display:block">${noteContent||''}</span>${!noteContent?`<div class="note-placeholder" style="font-size:.88rem;color:var(--muted);font-style:italic;margin-top:6px">Attiva ✏️ per aggiungere note</div>`:''}</div></div>`;
-  const dispToggle=`<div class="dsec disp-sec"><div class="dsec-label">Disponibilità</div><label style="display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer"><input type="checkbox" id="disp-${idx}" ${r.disponibile!==false?'checked':''} onchange="toggleDisponibile(${idx},this.checked)"> Disponibile (deseleziona se fuori produzione)</label></div>`;
+  const noteHTML=`<div class="dsec"><div class="dsec-label">Note</div><span class="note-box" data-path="${idx}.note" contenteditable="false" style="display:block">${nl2br(noteContent)}</span>${!noteContent?`<div class="note-placeholder" style="font-size:.88rem;color:var(--muted);font-style:italic;margin-top:6px">Attiva ✏️ per aggiungere note</div>`:''}</div>`;
+
+  // Flag India nel titolo: appare solo se fuori produzione + india=true
+  const indiaFlag=r.disponibile===false&&r.disponibile_india
+    ?`<span class="dcard-india" title="Disponibile in India (eBay)">🇮🇳</span>`:'';
+
+  // Sezione disponibilità in edit mode
+  // La checkbox India appare solo se il rimedio è fuori produzione
+  const dispToggle=`<div class="dsec disp-sec"><div class="dsec-label">Disponibilità</div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer;margin-bottom:8px">
+      <input type="checkbox" id="disp-${idx}" ${r.disponibile!==false?'checked':''} onchange="toggleDisponibile(${idx},this.checked)">
+      Disponibile (deseleziona se fuori produzione)
+    </label>
+    <label id="india-label-${idx}" style="display:${r.disponibile!==false?'none':'flex'};align-items:center;gap:8px;font-size:.88rem;cursor:pointer">
+      <input type="checkbox" id="india-${idx}" ${r.disponibile_india?'checked':''} onchange="toggleIndiaDisp(${idx},this.checked)">
+      🇮🇳 Disponibile in India (su eBay India)
+    </label>
+  </div>`;
+
   document.getElementById('detail').innerHTML=`
     <div class="dcard">
       <div class="dcard-header">
-        <div class="dcard-code">${r.codice}</div>
+        <div class="dcard-code">${r.codice}${indiaFlag}</div>
         <div class="dcard-title">
           <h2><span data-path="${idx}.nome" contenteditable="false">${r.nome||'—'}</span></h2>
           ${appBadges?`<div class="dcard-meta">${appBadges}</div>`:''}
@@ -464,7 +521,7 @@ function showDetail(idx){
         ${btnCmp}
       </div>
       <div class="dcard-body">
-        ${r.indicazioni?`<div class="dsec"><div class="dsec-label">Impiego generale</div><div class="indicazioni"><span data-path="${idx}.indicazioni" contenteditable="false">${r.indicazioni}</span></div></div>`:''}
+        ${r.indicazioni?`<div class="dsec"><div class="dsec-label">Impiego generale</div><div class="indicazioni"><span data-path="${idx}.indicazioni" contenteditable="false">${nl2br(r.indicazioni)}</span></div></div>`:''}
         ${sintomiHTML}
         ${forme.length?`<div class="dsec"><div class="dsec-label">Composizione</div>${compHTML}</div>`:''}
         ${posoHTML?`<div class="dsec"><div class="dsec-label">Posologia</div>${posoHTML}</div>`:''}
@@ -475,7 +532,6 @@ function showDetail(idx){
       </div>
     </div>`;
 
-  // Applica stato edit mode ai nuovi elementi
   if(editMode)applyEditMode();
   if(isMobile)mobileTab('dettaglio');
   renderList();
@@ -519,13 +575,12 @@ function showIngrediente(nome){
         <div class="pot-cod"><span class="pot-cod-badge" onclick="closeIngOverlay();goToRimedio('${e.codice}')">${e.codice}</span></div>
         <div class="pot-details">
           <div class="pot-rimedio-nome">${e.rimNome||e.codice}</div>
-          <div class="pot-prop ${e.proprieta?'':'empty'}" data-path="${e.ridx}.composizione.${e.forma}.${e.ingidx}.proprieta" contenteditable="false">${e.proprieta||'Nessuna descrizione.'}</div>
+          <div class="pot-prop ${e.proprieta?'':'empty'}" data-path="${e.ridx}.composizione.${e.forma}.${e.ingidx}.proprieta" contenteditable="false">${nl2br(e.proprieta)||'Nessuna descrizione.'}</div>
         </div>
       </div>`).join('');
     return`<div class="pot-block"><div class="pot-header"><span class="pot-badge">${pot}</span><span class="pot-count">${potEntries.length} ${potEntries.length===1?'rimedio':'rimedi'}</span></div><div class="pot-entries">${rows}</div></div>`;
   }).join('');
 
-  // Applica edit mode se attivo
   if(editMode)applyEditMode();
   document.getElementById('ingOverlay').classList.add('open');
 }
@@ -549,7 +604,6 @@ async function toggleEditMode(){
   btn.classList.toggle('active',editMode);
   btn.textContent=editMode?'✏️ ON':'✏️';
   if(editMode){
-    // ri-renderizza il rimedio aperto così tutti i campi hanno data-path corretto
     if(activeIdx!==null)showDetail(activeIdx);
     else applyEditMode();
   }else removeEditMode();
@@ -562,7 +616,6 @@ function applyEditMode(){
       el._editHandler=()=>syncEdit(el);
       el.addEventListener('input',el._editHandler);
     }
-    // Blocca i click figli che aprirebbero modali
     if(!el._clickBlocker){
       el._clickBlocker=e=>{if(editMode)e.stopPropagation();};
       el.addEventListener('click',el._clickBlocker);
@@ -576,13 +629,14 @@ function removeEditMode(){
   });
 }
 
-// Sincronizza modifica DOM → RIMEDI in tempo reale
+// Sincronizza modifica DOM → RIMEDI preservando gli accapo
 function syncEdit(el){
   const path=el.dataset.path;
   if(!path)return;
   const parts=path.split('.');
   const ridx=parseInt(parts[0]);
-  const val=el.innerText.trim();
+  // Usa getEditText per leggere correttamente \n
+  const val=getEditText(el);
   let obj=RIMEDI[ridx];
   for(let i=1;i<parts.length-1;i++){
     const k=parts[i];
@@ -591,11 +645,8 @@ function syncEdit(el){
   }
   const lastKey=parts[parts.length-1];
   const finalKey=Array.isArray(obj)?parseInt(lastKey,10):lastKey;
-  // campo note: se vuoto salva null per non sporcare il JSON
-  obj[finalKey]= (lastKey==='note' && !val) ? null : val;
-  // Marca come modificato
-  document.getElementById('editMsg').textContent='✏️ Modifiche non salvate — ricorda di salvare';
-  document.getElementById('editMsg').style.color='#7c2d12';
+  obj[finalKey]=(lastKey==='note'&&!val)?null:val;
+  markModified();
 }
 
 async function saveEdits(){
@@ -607,7 +658,6 @@ async function saveEdits(){
     if(d.ok){
       const msg=document.getElementById('editMsg');
       msg.textContent=`✅ Salvati ${d.rimedi} rimedi`;msg.style.color='#14532d';
-      // Ricostruisci ING_INDEX con dati aggiornati
       rebuildIngIndex();
     }else throw new Error(d.error||'Errore sconosciuto');
   }catch(err){
@@ -619,21 +669,38 @@ async function saveEdits(){
 
 function toggleDisponibile(idx,val){
   RIMEDI[idx].disponibile=val;
-  // aggiorna badge nella lista
+  // Mostra/nasconde la checkbox India (rilevante solo se fuori produzione)
+  const indiaLabel=document.getElementById(`india-label-${idx}`);
+  if(indiaLabel)indiaLabel.style.display=val?'none':'flex';
+  // Se torna disponibile, azzera il flag India
+  if(val){
+    RIMEDI[idx].disponibile_india=false;
+    const ic=document.getElementById(`india-${idx}`);
+    if(ic)ic.checked=false;
+  }
   renderList();
-  document.getElementById('editMsg').textContent='✏️ Modifiche non salvate — ricorda di salvare';
-  document.getElementById('editMsg').style.color='#7c2d12';
+  markModified();
+}
+
+function toggleIndiaDisp(idx,val){
+  RIMEDI[idx].disponibile_india=val;
+  renderList();
+  // Aggiorna il flag nel titolo del dettaglio senza re-render completo
+  const codeEl=document.querySelector('.dcard-code');
+  if(codeEl){
+    const r=RIMEDI[idx];
+    const flag=r.disponibile===false&&r.disponibile_india
+      ?`<span class="dcard-india" title="Disponibile in India (eBay)">🇮🇳</span>`:'';
+    codeEl.innerHTML=r.codice+flag;
+  }
+  markModified();
 }
 
 function cancelEdit(){
-  // Ricarica data.js tornando ai dati salvati
-  if(confirm('Annullare tutte le modifiche non salvate?')){
-    location.reload();
-  }
+  if(confirm('Annullare tutte le modifiche non salvate?')){location.reload();}
 }
 
 function rebuildIngIndex(){
-  // Aggiorna ING_INDEX e ING_SEARCH dopo un salvataggio
   for(const k in ING_INDEX)delete ING_INDEX[k];
   for(const k in ING_SEARCH)delete ING_SEARCH[k];
   RIMEDI.forEach((r,ridx)=>{
@@ -691,15 +758,29 @@ function cmpOverlayClick(e){if(e.target.id==='cmpOverlay')closeCompare();}
 // ── Filtro per sintomo ─────────────────────────────────────────────────
 function filterBySintomo(s){
   filterSintomo=(filterSintomo===s)?null:s;
-  // pulisce altri filtri per non creare confusione
   searchQ='';
   document.getElementById('searchInput').value='';
   document.getElementById('searchClear').classList.remove('vis');
   renderList();
-  // su mobile torna alla lista
   if(isMobile)mobileTab('lista');
 }
 function clearSintomo(){filterSintomo=null;renderList();}
+
+// ── Link condizioni associazioni → indice sintomi ──────────────────────
+// Se la condizione è un sintomo esatto → filtra direttamente
+// Altrimenti apre l'indice sintomi con la ricerca pre-compilata
+function searchSintomo(q){
+  if(editMode)return; // in edit mode non naviga
+  if(SINTOMI_INDEX[q]){
+    // Corrispondenza esatta: filtra la lista
+    filterBySintomo(q);
+  }else{
+    // Apre l'indice sintomi con la query pre-compilata
+    document.getElementById('idxSearch').value=q;
+    renderIndice(q);
+    document.getElementById('idxOverlay').classList.add('open');
+  }
+}
 
 // ── Indice sintomi ─────────────────────────────────────────────────────
 function openIndice(){
@@ -712,22 +793,17 @@ function idxOverlayClick(e){if(e.target.id==='idxOverlay')closeIndice();}
 
 function renderIndice(q){
   const filter=q.trim().toLowerCase();
-  // Tutti i sintomi unici ordinati A-Z
   const tutti=Object.keys(SINTOMI_INDEX).sort((a,b)=>a.localeCompare(b,'it'));
   const filtrati=filter?tutti.filter(s=>s.toLowerCase().includes(filter)):tutti;
-
-  // Raggruppa per lettera iniziale
   const gruppi={};
   filtrati.forEach(s=>{
     const l=s[0].toUpperCase();
     (gruppi[l]=gruppi[l]||[]).push(s);
   });
-
   if(!filtrati.length){
     document.getElementById('idxBody').innerHTML='<div style="color:var(--muted);font-size:.9rem;padding:16px 0">Nessun sintomo trovato.</div>';
     return;
   }
-
   document.getElementById('idxBody').innerHTML=Object.keys(gruppi).sort().map(l=>`
     <div class="idx-letter">
       <div class="idx-letter-head">${l}</div>
@@ -747,22 +823,31 @@ function renderAssoc(r,ridx){
     if(r.note_associazioni)return`<div class="dsec"><div class="dsec-label">Note associazioni</div><div class="indicazioni" style="font-size:.88rem">${r.note_associazioni}</div></div>`;
     return'';
   }
-  return`<div class="dsec"><div class="dsec-label">Associazioni consigliate</div>`+r.associazioni.map((a,ai)=>`<div class="assoc-row">
-    <div class="assoc-cond">${a.condizione}</div>
-    <div class="assoc-badges">${(a.rimedi||[]).map((c,ri)=>editMode
-      ?`<span class="assoc-badge-edit" data-path="${ridx}.associazioni.${ai}.rimedi.${ri}" contenteditable="false">${c}</span>`
-      :`<span class="assoc-badge" onclick="goToRimedio('${c}')">${c}</span>`
-    ).join('')}</div>
-  </div>`).join('')+`</div>`;
+  return`<div class="dsec"><div class="dsec-label">Associazioni consigliate</div>`
+    +r.associazioni.map((a,ai)=>`<div class="assoc-row">
+      <div>
+        <div class="assoc-cond" onclick="searchSintomo('${escJs(a.condizione)}')" title="Cerca nell'indice sintomi: ${escJs(a.condizione)}">${a.condizione}</div>
+        <div class="assoc-cond-hint">↗ cerca nell'indice</div>
+      </div>
+      <div class="assoc-badges">${(a.rimedi||[]).map((c,ri)=>editMode
+        ?`<span class="assoc-badge-edit" data-path="${ridx}.associazioni.${ai}.rimedi.${ri}" contenteditable="false">${c}</span>`
+        :`<span class="assoc-badge" onclick="goToRimedio('${c}')">${c}</span>`
+      ).join('')}</div>
+    </div>`).join('')+`</div>`;
 }
-function switchForma(el,f){const b=el.closest('.dcard-body');b.querySelectorAll('.forma-tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');b.querySelectorAll('.ing-panel').forEach(p=>p.style.display=p.dataset.forma===f?'block':'none');}
+
+function switchForma(el,f){
+  const b=el.closest('.dcard-body');
+  b.querySelectorAll('.forma-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  b.querySelectorAll('.ing-panel').forEach(p=>p.style.display=p.dataset.forma===f?'block':'none');
+}
 
 // ── Utility ────────────────────────────────────────────────────────────
 function goToRimedio(c){const idx=RIMEDI.findIndex(r=>r.codice===c);if(idx>=0){searchQ='';document.getElementById('searchInput').value='';document.getElementById('searchClear').classList.remove('vis');showDetail(idx);}}
 function toggleFilters(){document.getElementById('filtersPanel').classList.toggle('open');document.getElementById('btnFilter').classList.toggle('active',document.getElementById('filtersPanel').classList.contains('open'));}
 function clearSearch(){searchQ='';document.getElementById('searchInput').value='';document.getElementById('searchClear').classList.remove('vis');renderList();}
 function mobileTab(v){document.getElementById('sidebar').classList.toggle('hidden',v==='dettaglio');document.getElementById('detail').classList.toggle('hidden',v==='lista');document.getElementById('bnav-lista').classList.toggle('active',v==='lista');document.getElementById('bnav-dettaglio').classList.toggle('active',v==='dettaglio');}
-function escJs(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
 function toggleForma(el){filterForma=(filterForma===el.dataset.ftype)?null:el.dataset.ftype;document.querySelectorAll('[data-ftype]').forEach(c=>c.classList.toggle('on',c.dataset.ftype===filterForma));renderList();}
 function toggleDisp(el){filterDispOnly=!filterDispOnly;el.classList.toggle('on',filterDispOnly);renderList();}
 
