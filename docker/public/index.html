@@ -42,33 +42,51 @@ if('serviceWorker' in navigator){
 html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'Source Sans 3',sans-serif;font-size:16px;overflow:hidden}
 
 /* HEADER */
-.header{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--r);padding:0 12px;height:56px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(192,57,43,.4)}
-.header-logo{font-family:'DM Mono',monospace;color:white;font-size:.72rem;letter-spacing:2px;opacity:.85;white-space:nowrap}
-@media(max-width:500px){.header-logo{display:none}}
+.header{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--r);padding:0 10px;height:56px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(192,57,43,.4)}
+.header-logo{font-family:'DM Mono',monospace;color:white;font-size:.72rem;letter-spacing:2px;opacity:.85;white-space:nowrap;flex-shrink:0}
+/* Logo sparisce sotto 560px per dare spazio alla search */
+@media(max-width:560px){.header-logo{display:none}}
 
+/* Search: flex:1 con min-width:0 — prende tutto lo spazio residuo */
 .search-wrap{flex:1;position:relative;min-width:0}
 .search-wrap input{
-  width:100%;padding:9px 36px 9px 14px;
+  width:100%;padding:9px 34px 9px 12px;
   border:none;border-radius:8px;
   background:rgba(255,255,255,.22);
-  font-size:.95rem;font-family:'Source Sans 3',sans-serif;
+  font-size:.92rem;font-family:'Source Sans 3',sans-serif;
   outline:none;
-  /* FIX: su Android/iOS webkit il colore testo va forzato così */
   color:white !important;
   -webkit-text-fill-color:white !important;
 }
-.search-wrap input::placeholder{color:rgba(255,255,255,.65);-webkit-text-fill-color:rgba(255,255,255,.65)}
-/* quando autofill del browser cambia il bg, manteniamo leggibile */
-.search-wrap input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px rgba(192,57,43,.6) inset !important;-webkit-text-fill-color:white !important;}
-.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.7);font-size:1.1rem;cursor:pointer;display:none;padding:4px}
+.search-wrap input::placeholder{color:rgba(255,255,255,.6);-webkit-text-fill-color:rgba(255,255,255,.6)}
+.search-wrap input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px rgba(192,57,43,.7) inset !important;-webkit-text-fill-color:white !important}
+.search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.7);font-size:1.1rem;cursor:pointer;display:none;padding:4px;line-height:1}
 .search-clear.vis{display:block}
-.btn-filter{background:rgba(255,255,255,.18);border:none;border-radius:8px;color:white;padding:8px 10px;cursor:pointer;font-size:.82rem;white-space:nowrap;transition:background .15s;flex-shrink:0}
+
+/* Bottoni header: flex-shrink:0 e si accorciano su mobile */
+.btn-filter,.btn-indice,.btn-edit{
+  background:rgba(255,255,255,.18);border:none;border-radius:8px;
+  color:white;cursor:pointer;transition:background .15s;
+  flex-shrink:0;white-space:nowrap;
+  /* desktop: testo */
+  padding:8px 10px;font-size:.82rem;
+}
 .btn-filter.active{background:rgba(255,255,255,.32)}
-.btn-indice{background:rgba(255,255,255,.18);border:none;border-radius:8px;color:white;padding:8px 10px;cursor:pointer;font-size:.82rem;white-space:nowrap;transition:background .15s;flex-shrink:0}
 .btn-indice:hover{background:rgba(255,255,255,.28)}
-.btn-edit{background:rgba(255,255,255,.18);border:none;border-radius:8px;color:white;padding:8px 9px;cursor:pointer;font-size:.82rem;white-space:nowrap;transition:background .15s;display:none;flex-shrink:0}
+.btn-edit{display:none}
 .btn-edit.ready{display:flex;align-items:center;gap:4px}
 .btn-edit.active{background:var(--amber);color:#1c1917;font-weight:600}
+
+/* Mobile ≤480px: bottoni diventano quadrati con solo icona/emoji */
+@media(max-width:480px){
+  .header{gap:4px;padding:0 8px}
+  .btn-filter,.btn-indice{padding:8px 8px;font-size:0} /* nasconde testo */
+  .btn-filter::after{content:'☰';font-size:.95rem}
+  .btn-indice::after{content:'📋';font-size:.95rem}
+  .btn-edit{padding:8px 8px}
+  /* edit ON: mantieni testo visibile anche su mobile */
+  .btn-edit.active{font-size:.75rem;padding:6px 8px}
+}
 
 /* LAYOUT */
 .layout{display:flex;height:100vh;padding-top:56px}
