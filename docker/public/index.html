@@ -6,6 +6,8 @@
 <title>Dr. Reckeweg - Prontuario</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- Flag icons: renderizza bandiere vere anche su Windows -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/7.2.3/css/flag-icons.min.css">
 <script>
 (async()=>{
   let v=Date.now();
@@ -50,11 +52,11 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 .remedy-list{overflow-y:auto;flex:1;overscroll-behavior:contain}
 .remedy-item{padding:11px 14px;border-bottom:1px solid var(--bordo);cursor:pointer;transition:background .1s;display:flex;align-items:flex-start;gap:10px}
 .remedy-item.active{background:var(--rl);border-left:3px solid var(--r)}
-.item-badge-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:2px}
-/* 3 stati badge: rosso, rosso+india, grigio */
+.item-badge-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:2px}
 .item-code{background:var(--r);color:white;border-radius:5px;padding:2px 7px;font-family:'DM Mono',monospace;font-size:.72rem;font-weight:500;min-width:38px;text-align:center}
 .item-code.non-disp{background:var(--muted)}
-.item-flag{font-size:.9rem;line-height:1}
+/* Bandiera India con flag-icons */
+.item-flag .fi{width:1.1em;height:.82em;border-radius:2px;display:block}
 .item-nome{font-family:'Crimson Pro',serif;font-size:1rem;font-weight:600;line-height:1.3}
 .item-preview{font-size:.77rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tag{padding:1px 6px;border-radius:10px;font-size:.67rem;background:var(--grigio);color:var(--muted);margin-top:4px;display:inline-block}
@@ -63,9 +65,8 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 .detail-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:var(--muted)}
 .dcard{max-width:780px;margin:20px auto;padding:0 16px 40px}
 .dcard-header{background:var(--r);border-radius:12px 12px 0 0;padding:20px 24px;display:flex;align-items:center;gap:18px}
-/* Il badge codice nel titolo: colonna per impilare codice + flag */
-.dcard-code-wrap{font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;color:white;background:rgba(0,0,0,.15);border-radius:8px;padding:6px 16px;letter-spacing:1px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;line-height:1}
-.dcard-india{font-size:1.3rem;line-height:1}
+.dcard-code-wrap{font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;color:white;background:rgba(0,0,0,.15);border-radius:8px;padding:6px 16px;letter-spacing:1px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;line-height:1}
+.dcard-india .fi{width:1.6em;height:1.2em;border-radius:3px;display:block}
 .dcard-title{flex:1}
 .dcard-title h2{font-family:'Crimson Pro',serif;font-size:1.45rem;font-weight:600;color:white;line-height:1.3}
 .dcard-meta{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
@@ -99,7 +100,6 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 .idx-chips{display:flex;flex-wrap:wrap;gap:6px}
 .idx-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:var(--crema);border:1px solid var(--bordo);cursor:pointer;transition:all .15s;font-size:.85rem}
 .idx-chip:hover{border-color:var(--r);background:var(--rl)}
-/* Chip da condizioni associazioni: bordo tratteggiato */
 .idx-chip.from-assoc{border-style:dashed;color:var(--muted)}
 .idx-count{font-family:'DM Mono',monospace;font-size:.68rem;background:var(--r);color:white;border-radius:10px;padding:1px 6px;min-width:18px;text-align:center}
 .btn-indice{background:rgba(255,255,255,.18);border:none;border-radius:8px;color:white;padding:8px 11px;cursor:pointer;font-size:.85rem;white-space:nowrap;transition:background .15s}
@@ -194,11 +194,11 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 /* ── EDIT MODE ─────────────────────────────────── */
 .disp-sec{display:none}
 body.edit-mode .disp-sec{display:block}
-body.edit-mode [data-path]{outline:1px dashed var(--amber);border-radius:3px;background:var(--amberl) !important;color:var(--testo) !important;cursor:text;min-height:1em;transition:outline .1s,background .1s;white-space:pre-wrap}
+body.edit-mode [data-path]{outline:1px dashed var(--amber);border-radius:3px;background:var(--amberl) !important;color:var(--testo) !important;cursor:text;min-height:1.2em;transition:outline .1s,background .1s;white-space:pre-wrap}
 body.edit-mode [data-path]:focus{outline:2px solid var(--amber);background:white !important;color:var(--testo) !important;box-shadow:0 0 0 3px rgba(245,158,11,.2)}
 [data-path]{white-space:pre-wrap}
 
-/* Disponibilità: radio 3 opzioni */
+/* Disponibilità radio */
 .disp-radio-group{display:flex;flex-direction:column;gap:7px}
 .disp-radio-opt{display:flex;align-items:center;gap:10px;font-size:.88rem;cursor:pointer;padding:7px 12px;border-radius:7px;border:1px solid var(--bordo);transition:background .12s;user-select:none}
 .disp-radio-opt:hover{background:var(--grigio)}
@@ -207,16 +207,36 @@ body.edit-mode [data-path]:focus{outline:2px solid var(--amber);background:white
 .opt-badge.red{background:var(--r)}
 .opt-badge.grey{background:var(--muted)}
 
-.edit-bar{position:fixed;top:56px;left:0;right:0;z-index:250;background:var(--amber);padding:8px 20px;display:none;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(245,158,11,.4)}
+/* ── RICH TEXT TOOLBAR ─────────────────────────── */
+#rtoolbar{
+  position:fixed;z-index:500;
+  background:white;border:1px solid var(--bordo);
+  border-radius:10px;padding:5px 8px;
+  box-shadow:var(--shadow-lg);
+  display:none;align-items:center;gap:2px;
+  pointer-events:all
+}
+#rtoolbar.vis{display:flex}
+.rt-btn{background:none;border:none;border-radius:5px;width:28px;height:28px;cursor:pointer;font-size:.88rem;display:flex;align-items:center;justify-content:center;color:var(--testo);transition:background .1s}
+.rt-btn:hover{background:var(--grigio)}
+.rt-btn.active-fmt{background:var(--rl);color:var(--r)}
+.rt-sep{width:1px;height:20px;background:var(--bordo);margin:0 3px;flex-shrink:0}
+.rt-color{width:20px;height:20px;border-radius:50%;border:2px solid var(--bordo);cursor:pointer;transition:transform .1s;flex-shrink:0}
+.rt-color:hover{transform:scale(1.2);border-color:var(--testo)}
+
+/* Edit bar */
+.edit-bar{position:fixed;top:56px;left:0;right:0;z-index:250;background:var(--amber);padding:8px 20px;display:none;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(245,158,11,.4);flex-wrap:wrap}
 .edit-bar.vis{display:flex}
-.edit-bar-msg{flex:1;font-size:.85rem;font-weight:600;color:#1c1917}
-.btn-eb{border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:.82rem;font-weight:600}
+.edit-bar-msg{flex:1;font-size:.85rem;font-weight:600;color:#1c1917;min-width:120px}
+.btn-eb{border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:.82rem;font-weight:600;white-space:nowrap}
 .btn-eb-save{background:#1c1917;color:white}
 .btn-eb-save:disabled{opacity:.5;cursor:not-allowed}
 .btn-eb-cancel{background:rgba(0,0,0,.15);color:#1c1917}
-body.edit-mode .layout{padding-top:calc(56px + 40px)}
-body.edit-mode .sidebar{top:calc(56px + 40px)}
-@media(max-width:700px){body.edit-mode .detail{top:calc(56px + 40px)}}
+.btn-eb-new{background:#fff;color:var(--r);border:1px solid var(--r)}
+.btn-eb-new:hover{background:var(--rl)}
+body.edit-mode .layout{padding-top:calc(56px + 42px)}
+body.edit-mode .sidebar{top:calc(56px + 42px)}
+@media(max-width:700px){body.edit-mode .detail{top:calc(56px + 42px)}}
 
 .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:150;background:white;border-top:1px solid var(--bordo);height:60px}
 @media(max-width:700px){.bottom-nav{display:flex}}
@@ -238,10 +258,27 @@ mark{background:rgba(192,57,43,.15);color:inherit;border-radius:2px;padding:0 1p
   <button class="btn-edit" id="btnEdit" onclick="toggleEditMode()" title="Modalità modifica">✏️</button>
 </header>
 
+<!-- Barra edit mode -->
 <div class="edit-bar" id="editBar">
-  <span class="edit-bar-msg" id="editMsg">✏️ Modalità modifica — clicca su qualsiasi testo per modificarlo</span>
+  <span class="edit-bar-msg" id="editMsg">✏️ Modalità modifica attiva</span>
+  <button class="btn-eb btn-eb-new" onclick="newRimedio()" title="Crea nuovo rimedio">＋ Nuovo rimedio</button>
   <button class="btn-eb btn-eb-cancel" onclick="cancelEdit()">Annulla</button>
   <button class="btn-eb btn-eb-save" id="btnSave" onclick="saveEdits()">💾 Salva</button>
+</div>
+
+<!-- Toolbar rich text (appare quando si edita un campo) -->
+<div id="rtoolbar">
+  <button class="rt-btn" id="rt-bold"   onmousedown="fmtEvt(event,'bold')"      title="Grassetto (Ctrl+B)"><b>B</b></button>
+  <button class="rt-btn" id="rt-italic" onmousedown="fmtEvt(event,'italic')"    title="Corsivo (Ctrl+I)"><em>I</em></button>
+  <button class="rt-btn" id="rt-under"  onmousedown="fmtEvt(event,'underline')" title="Sottolineato (Ctrl+U)"><u>U</u></button>
+  <div class="rt-sep"></div>
+  <div class="rt-color" style="background:#C0392B" title="Rosso"     onmousedown="fmtEvt(event,'foreColor','#C0392B')"></div>
+  <div class="rt-color" style="background:#16a34a" title="Verde"     onmousedown="fmtEvt(event,'foreColor','#16a34a')"></div>
+  <div class="rt-color" style="background:#1d4ed8" title="Blu"       onmousedown="fmtEvt(event,'foreColor','#1d4ed8')"></div>
+  <div class="rt-color" style="background:#f59e0b" title="Ambra"     onmousedown="fmtEvt(event,'foreColor','#f59e0b')"></div>
+  <div class="rt-color" style="background:#1C1917" title="Nero"      onmousedown="fmtEvt(event,'foreColor','#1C1917')"></div>
+  <div class="rt-sep"></div>
+  <button class="rt-btn" onmousedown="fmtEvt(event,'removeFormat')" title="Rimuovi formattazione" style="font-size:.75rem">✕fmt</button>
 </div>
 
 <div class="layout">
@@ -283,13 +320,8 @@ mark{background:rgba(192,57,43,.15);color:inherit;border-radius:2px;padding:0 1p
 <!-- Indice sintomi -->
 <div class="idx-overlay" id="idxOverlay" onclick="idxOverlayClick(event)">
   <div class="idx-card">
-    <div class="idx-header">
-      <h3>Indice sintomi</h3>
-      <button class="idx-close" onclick="closeIndice()">✕</button>
-    </div>
-    <div class="idx-search">
-      <input type="text" id="idxSearch" placeholder="Filtra sintomi…" oninput="renderIndice(this.value)" autocomplete="off">
-    </div>
+    <div class="idx-header"><h3>Indice sintomi</h3><button class="idx-close" onclick="closeIndice()">✕</button></div>
+    <div class="idx-search"><input type="text" id="idxSearch" placeholder="Filtra sintomi…" oninput="renderIndice(this.value)" autocomplete="off"></div>
     <div class="idx-body" id="idxBody"></div>
   </div>
 </div>
@@ -298,10 +330,7 @@ mark{background:rgba(192,57,43,.15);color:inherit;border-radius:2px;padding:0 1p
 <div class="ing-overlay" id="ingOverlay" onclick="ingOverlayClick(event)">
   <div class="ing-modal">
     <div class="ing-modal-header">
-      <div>
-        <div class="ing-modal-nome" id="ingNome"></div>
-        <div id="ingSubtitle" style="color:rgba(255,255,255,.75);font-size:.82rem;margin-top:4px"></div>
-      </div>
+      <div><div class="ing-modal-nome" id="ingNome"></div><div id="ingSubtitle" style="color:rgba(255,255,255,.75);font-size:.82rem;margin-top:4px"></div></div>
       <button class="ing-modal-close" onclick="closeIngOverlay()">✕</button>
     </div>
     <div class="ing-modal-stats" id="ingStats"></div>
@@ -312,10 +341,7 @@ mark{background:rgba(192,57,43,.15);color:inherit;border-radius:2px;padding:0 1p
 <!-- Modale confronto -->
 <div class="cmp-overlay" id="cmpOverlay" onclick="cmpOverlayClick(event)">
   <div class="cmp-card">
-    <div class="cmp-header">
-      <h3>Confronto ingredienti</h3>
-      <button class="cmp-close" onclick="closeCompare()">✕</button>
-    </div>
+    <div class="cmp-header"><h3>Confronto ingredienti</h3><button class="cmp-close" onclick="closeCompare()">✕</button></div>
     <div class="cmp-legend">
       <div class="leg-item"><div class="leg-dot" style="background:#86efac"></div>Comune a tutti</div>
       <div class="leg-item"><div class="leg-dot" style="background:#fde047"></div>Comune ad alcuni</div>
@@ -326,38 +352,41 @@ mark{background:rgba(192,57,43,.15);color:inherit;border-radius:2px;padding:0 1p
 </div>
 
 <script>
-// ── Stato globale ───────────────────────────────────────────────────────
+// ── Stato ───────────────────────────────────────────────────────────────
 let searchQ='',filterSistema=null,filterForma=null,filterDispOnly=false,filterSintomo=null,activeIdx=null;
 let isMobile=window.innerWidth<=700,compareList=[];
 let editMode=false,serverAvail=false;
+let activeEditEl=null; // elemento [data-path] attualmente in focus per rich text
 
 const ING_INDEX={},BACKLINKS={},ING_SEARCH={};
-// SINTOMI_INDEX: string → Set<codice>  (include sia sintomi_indice che condizioni associazioni)
-// ASSOC_TERMS: Set<string>  (solo le condizioni da associazioni, per stile diverso nell'indice)
-const SINTOMI_INDEX={};
+const SINTOMI_INDEX={};   // termine → Set<codice>
 const ASSOC_TERMS=new Set();
 
-// ── Helper: 3 stati disponibilità ──────────────────────────────────────
-// 'available'   → r.disponibile !== false
-// 'india'       → r.disponibile === false && r.disponibile_india === true
-// 'unavailable' → r.disponibile === false && !r.disponibile_india
+// ── 3 stati disponibilità ───────────────────────────────────────────────
 function getDispState(r){
   if(r.disponibile!==false)return'available';
   if(r.disponibile_india===true)return'india';
   return'unavailable';
 }
 
-// ── Helper testo ────────────────────────────────────────────────────────
-function nl2br(s){return(s||'').replace(/\n/g,'<br>');}
+// India flag HTML usando flag-icons (funziona anche su Windows)
+function indiaFlag(size){
+  // size: 'sm' per lista, 'lg' per titolo dettaglio
+  const s=size==='lg'?'width:1.7em;height:1.25em':'width:1.1em;height:.82em';
+  return`<span class="item-flag"><span class="fi fi-in" style="${s};border-radius:2px;display:inline-block"></span></span>`;
+}
 
-function getEditText(el){
-  let h=el.innerHTML;
-  h=h.replace(/<br\s*\/?>/gi,'\n').replace(/<\/div>/gi,'\n').replace(/<\/p>/gi,'\n').replace(/<[^>]+>/g,'');
-  const tmp=document.createElement('textarea');tmp.innerHTML=h;
-  return tmp.value.replace(/\n+$/,'');
+// ── Helper testo ────────────────────────────────────────────────────────
+// Renderizza il testo dal JSON: se contiene già tag HTML li usa direttamente,
+// altrimenti converte \n → <br> (retrocompatibilità dati legacy)
+function renderText(s){
+  if(!s)return'';
+  if(s.includes('<'))return s;          // già HTML
+  return s.replace(/\n/g,'<br>');       // legacy: plain text con \n
 }
 
 function escJs(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
+
 function markModified(){
   document.getElementById('editMsg').textContent='✏️ Modifiche non salvate — ricorda di salvare';
   document.getElementById('editMsg').style.color='#7c2d12';
@@ -366,35 +395,26 @@ function markModified(){
 // ── Init ────────────────────────────────────────────────────────────────
 function initApp(){
   if(typeof RIMEDI==='undefined'){alert('data.js non trovato!');return;}
-
   RIMEDI.forEach(r=>{
-    // Sintomi diretti dall'array sintomi_indice
     (r.sintomi_indice||[]).forEach(s=>{
       if(!SINTOMI_INDEX[s])SINTOMI_INDEX[s]=new Set();
       SINTOMI_INDEX[s].add(r.codice);
     });
-
-    // Condizioni dalle associazioni → indicizzate come termini ricercabili
-    // Vengono collegate sia al rimedio che li elenca, sia ai rimedi consigliati
     (r.associazioni||[]).forEach(a=>{
       if(!a.condizione)return;
-      const cond=a.condizione.trim();
-      ASSOC_TERMS.add(cond);
-      if(!SINTOMI_INDEX[cond])SINTOMI_INDEX[cond]=new Set();
-      // Il rimedio "padre" (quello che ha questa associazione)
-      SINTOMI_INDEX[cond].add(r.codice);
-      // I rimedi consigliati per questa condizione
-      (a.rimedi||[]).forEach(cod=>SINTOMI_INDEX[cond].add(cod));
+      const c=a.condizione.trim();
+      ASSOC_TERMS.add(c);
+      if(!SINTOMI_INDEX[c])SINTOMI_INDEX[c]=new Set();
+      SINTOMI_INDEX[c].add(r.codice);
+      (a.rimedi||[]).forEach(cod=>SINTOMI_INDEX[c].add(cod));
     });
   });
-
   RIMEDI.forEach((r,ridx)=>{
     Object.entries(r.composizione||{}).forEach(([forma,list])=>{
       (list||[]).forEach((ing,ingidx)=>{
         if(!ing.nome)return;
         if(!ING_INDEX[ing.nome])ING_INDEX[ing.nome]=[];
-        ING_INDEX[ing.nome].push({codice:r.codice,rimNome:r.nome||r.codice,
-          ridx,forma,ingidx,tipo:ing.tipo||'D',potenza:ing.potenza||0,proprieta:(ing.proprieta||'').trim()});
+        ING_INDEX[ing.nome].push({codice:r.codice,rimNome:r.nome||r.codice,ridx,forma,ingidx,tipo:ing.tipo||'D',potenza:ing.potenza||0,proprieta:(ing.proprieta||'').trim()});
         const nl=ing.nome.toLowerCase();
         if(!ING_SEARCH[nl])ING_SEARCH[nl]=new Set();
         ING_SEARCH[nl].add(r.codice);
@@ -406,7 +426,6 @@ function initApp(){
       });
     });
   });
-
   const sistemi=[...new Set(RIMEDI.map(r=>r.sistema).filter(Boolean))].sort();
   const fsEl=document.getElementById('filterSistema');
   sistemi.forEach(s=>{
@@ -422,40 +441,29 @@ function initApp(){
 function renderList(){
   const tokens=searchQ.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const visible=RIMEDI.filter(r=>{
-    // Haystack esteso: include condizioni associazioni
     const assocConds=(r.associazioni||[]).map(a=>a.condizione||'').join(' ');
-    const hay=[r.codice,r.nome,r.indicazioni,r.sistema,
-               (r.sintomi_indice||[]).join(' '),assocConds].join(' ').toLowerCase();
+    const hay=[r.codice,r.nome,r.indicazioni,r.sistema,(r.sintomi_indice||[]).join(' '),assocConds].join(' ').toLowerCase();
     const matchRim=!tokens.length||tokens.every(t=>hay.includes(t));
     const matchIng=!tokens.length||tokens.every(t=>{
       if(hay.includes(t))return true;
       for(const nl of Object.keys(ING_SEARCH))if(nl.includes(t)&&ING_SEARCH[nl].has(r.codice))return true;
       return false;
     });
-    // filterSintomo ora lavora su SINTOMI_INDEX che include anche condizioni assoc
     const matchSintomo=!filterSintomo||(SINTOMI_INDEX[filterSintomo]&&SINTOMI_INDEX[filterSintomo].has(r.codice));
-    return(matchRim||matchIng)&&matchSintomo
-      &&(!filterSistema||r.sistema===filterSistema)
-      &&(!filterForma||(r.forma||[]).includes(filterForma))
-      &&(!filterDispOnly||r.disponibile===false);
+    return(matchRim||matchIng)&&matchSintomo&&(!filterSistema||r.sistema===filterSistema)&&(!filterForma||(r.forma||[]).includes(filterForma))&&(!filterDispOnly||r.disponibile===false);
   });
-
   document.getElementById('listCount').textContent=visible.length+' rimedi';
   const pill=document.getElementById('sintomoActivePill');
-  if(filterSintomo)pill.innerHTML=`<span class="filter-pill">${filterSintomo}<button onclick="clearSintomo()" title="Rimuovi filtro">✕</button></span>`;
+  if(filterSintomo)pill.innerHTML=`<span class="filter-pill">${filterSintomo}<button onclick="clearSintomo()">✕</button></span>`;
   else pill.innerHTML='';
-
   document.getElementById('remedyList').innerHTML=visible.map(r=>{
     const ri=RIMEDI.indexOf(r);
     const prev=(r.indicazioni||(r.sintomi_indice||[]).slice(0,3).join(', ')||'').substring(0,65);
     const state=getDispState(r);
     const codeClass='item-code'+(state==='unavailable'?' non-disp':'');
-    const flagHtml=state==='india'?'<div class="item-flag" title="Disponibile in India (eBay)">🇮🇳</div>':'';
+    const flagHtml=state==='india'?indiaFlag('sm'):'';
     return`<div class="remedy-item ${activeIdx===ri?'active':''}" onclick="showDetail(${ri})">
-      <div class="item-badge-wrap">
-        <div class="${codeClass}">${r.codice}</div>
-        ${flagHtml}
-      </div>
+      <div class="item-badge-wrap"><div class="${codeClass}">${r.codice}</div>${flagHtml}</div>
       <div style="min-width:0">
         <div class="item-nome">${r.nome||'—'}</div>
         <div class="item-preview">${prev}…</div>
@@ -465,7 +473,7 @@ function renderList(){
   }).join('');
 }
 
-// ── Dettaglio rimedio ─────────────────────────────────────────────────
+// ── Dettaglio ───────────────────────────────────────────────────────────
 function showDetail(idx){
   activeIdx=idx;const r=RIMEDI[idx];
   const forme=Object.keys(r.composizione||{});
@@ -476,7 +484,7 @@ function showDetail(idx){
     forme.map((f,i)=>`<div class="ing-panel" data-forma="${f}" style="${i>0?'display:none':''}">${ingGrid(r.composizione[f],r.codice,idx,f)}</div>`).join('');
 
   const posoHTML=Object.entries(r.posologia||{}).filter(([,v])=>v).map(([k,v])=>
-    `<div class="poso-box"><div class="poso-forma">${k}</div><span data-path="${idx}.posologia.${k}" contenteditable="false">${nl2br(v)}</span></div>`).join('');
+    `<div class="poso-box"><div class="poso-forma">${k}</div><span data-path="${idx}.posologia.${k}" contenteditable="false">${renderText(v)}</span></div>`).join('');
 
   const appBadges=(r.tutti_apparati||[]).map(a=>`<span class="app-badge">${a}</span>`).join('');
   const sintomiHTML=(r.sintomi_indice||[]).length
@@ -485,34 +493,19 @@ function showDetail(idx){
   const backHTML=bl.length?`<div class="dsec"><div class="dsec-label">Consigliato in associazione da</div><div class="backlink-wrap">${bl.map(c=>`<span class="assoc-badge" onclick="goToRimedio('${c}')">${c}</span>`).join('')}</div></div>`:'';
   const inC=compareList.some(x=>x.idx===idx);
   const btnCmp=`<button class="btn-compare ${inC?'added':''}" onclick="toggleCompare(${idx})" id="cmpBtn-${idx}">${inC?'✓ Nel confronto':'+ Confronta'}</button>`;
+
   const noteContent=r.note||'';
-  const noteHTML=`<div class="dsec"><div class="dsec-label">Note</div><span class="note-box" data-path="${idx}.note" contenteditable="false" style="display:block">${nl2br(noteContent)}</span>${!noteContent?`<div style="font-size:.88rem;color:var(--muted);font-style:italic;margin-top:6px">Attiva ✏️ per aggiungere note</div>`:''}</div>`;
+  const noteHTML=`<div class="dsec"><div class="dsec-label">Note</div><span class="note-box" data-path="${idx}.note" contenteditable="false" style="display:block">${renderText(noteContent)}</span>${!noteContent&&!editMode?`<div style="font-size:.88rem;color:var(--muted);font-style:italic;margin-top:6px">Attiva ✏️ per aggiungere note</div>`:''}</div>`;
 
-  // Badge titolo: rosso, rosso+🇮🇳, o rosso (la colorazione del badge rimane sempre rossa, solo lista ha grigio)
-  // Nel titolo il badge è sempre rosso (la "non disponibilità" è mostrata dalla badge grigia in lista)
-  // Ma aggiungiamo il flag 🇮🇳 sotto il codice se stato=india
   const state=getDispState(r);
-  const titleFlag=state==='india'?`<div class="dcard-india" title="Disponibile in India (eBay)">🇮🇳</div>`:'';
+  const titleFlag=state==='india'?`<div class="dcard-india">${indiaFlag('lg')}</div>`:'';
 
-  // Sezione edit disponibilità: 3 radio button chiari
   const dispToggle=`<div class="dsec disp-sec">
     <div class="dsec-label">Disponibilità</div>
     <div class="disp-radio-group">
-      <label class="disp-radio-opt">
-        <input type="radio" name="disp-${idx}" value="available" ${state==='available'?'checked':''} onchange="setDispState(${idx},'available')">
-        <span class="opt-badge red">${r.codice}</span>
-        Disponibile (badge rosso)
-      </label>
-      <label class="disp-radio-opt">
-        <input type="radio" name="disp-${idx}" value="india" ${state==='india'?'checked':''} onchange="setDispState(${idx},'india')">
-        <span class="opt-badge red">${r.codice}</span>&thinsp;🇮🇳
-        Disponibile in India su eBay
-      </label>
-      <label class="disp-radio-opt">
-        <input type="radio" name="disp-${idx}" value="unavailable" ${state==='unavailable'?'checked':''} onchange="setDispState(${idx},'unavailable')">
-        <span class="opt-badge grey">${r.codice}</span>
-        Non disponibile / fuori produzione
-      </label>
+      <label class="disp-radio-opt"><input type="radio" name="disp-${idx}" value="available" ${state==='available'?'checked':''} onchange="setDispState(${idx},'available')"><span class="opt-badge red">${r.codice}</span> Disponibile</label>
+      <label class="disp-radio-opt"><input type="radio" name="disp-${idx}" value="india" ${state==='india'?'checked':''} onchange="setDispState(${idx},'india')"><span class="opt-badge red">${r.codice}</span>&nbsp;${indiaFlag('sm')}&nbsp;Disponibile in India (eBay)</label>
+      <label class="disp-radio-opt"><input type="radio" name="disp-${idx}" value="unavailable" ${state==='unavailable'?'checked':''} onchange="setDispState(${idx},'unavailable')"><span class="opt-badge grey">${r.codice}</span> Non disponibile / fuori produzione</label>
     </div>
   </div>`;
 
@@ -521,13 +514,13 @@ function showDetail(idx){
       <div class="dcard-header">
         <div class="dcard-code-wrap" id="dcard-code-${idx}">${r.codice}${titleFlag}</div>
         <div class="dcard-title">
-          <h2><span data-path="${idx}.nome" contenteditable="false">${r.nome||'—'}</span></h2>
+          <h2><span data-path="${idx}.nome" contenteditable="false">${renderText(r.nome||'—')}</span></h2>
           ${appBadges?`<div class="dcard-meta">${appBadges}</div>`:''}
         </div>
         ${btnCmp}
       </div>
       <div class="dcard-body">
-        ${r.indicazioni?`<div class="dsec"><div class="dsec-label">Impiego generale</div><div class="indicazioni"><span data-path="${idx}.indicazioni" contenteditable="false">${nl2br(r.indicazioni)}</span></div></div>`:''}
+        <div class="dsec"><div class="dsec-label">Impiego generale</div><div class="indicazioni"><span data-path="${idx}.indicazioni" contenteditable="false">${renderText(r.indicazioni||'')}</span></div></div>
         ${sintomiHTML}
         ${forme.length?`<div class="dsec"><div class="dsec-label">Composizione</div>${compHTML}</div>`:''}
         ${posoHTML?`<div class="dsec"><div class="dsec-label">Posologia</div>${posoHTML}</div>`:''}
@@ -543,7 +536,7 @@ function showDetail(idx){
   renderList();
 }
 
-// ── Griglia ingredienti ───────────────────────────────────────────────
+// ── Griglia ingredienti ──────────────────────────────────────────────────
 function ingGrid(list,thisCod,ridx,forma){
   if(!list||!list.length)return'<em style="color:var(--muted);font-size:.85rem">—</em>';
   const otherIdxs=compareList.filter(x=>RIMEDI[x.idx].codice!==thisCod).map(x=>x.idx);
@@ -552,7 +545,7 @@ function ingGrid(list,thisCod,ridx,forma){
     const oSets=otherIdxs.map(i=>new Set(Object.values(RIMEDI[i].composizione||{}).flat().map(x=>x.nome)));
     list.forEach(i=>{if(oSets.some(s=>s.has(i.nome)))sharedWith.add(i.nome);});
   }
-  return`<div class="ing-grid">${list.map((i)=>{
+  return`<div class="ing-grid">${list.map(i=>{
     const sh=sharedWith.has(i.nome);const dil=`${i.tipo||'D'}${i.potenza||''}`;
     return`<div class="ing-chip ${sh?'shared':''}" onclick="showIngrediente('${escJs(i.nome)}')">
       <span class="ing-name">${i.nome}</span><span class="ing-dil">${dil}</span>
@@ -560,7 +553,7 @@ function ingGrid(list,thisCod,ridx,forma){
   }).join('')}</div>`;
 }
 
-// ── Modale ingrediente ────────────────────────────────────────────────
+// ── Modale ingrediente ────────────────────────────────────────────────────
 function showIngrediente(nome){
   const entries=ING_INDEX[nome];if(!entries||!entries.length)return;
   const byPot={};
@@ -577,7 +570,7 @@ function showIngrediente(nome){
         <div class="pot-cod"><span class="pot-cod-badge" onclick="closeIngOverlay();goToRimedio('${e.codice}')">${e.codice}</span></div>
         <div class="pot-details">
           <div class="pot-rimedio-nome">${e.rimNome||e.codice}</div>
-          <div class="pot-prop ${e.proprieta?'':'empty'}" data-path="${e.ridx}.composizione.${e.forma}.${e.ingidx}.proprieta" contenteditable="false">${nl2br(e.proprieta)||'Nessuna descrizione.'}</div>
+          <div class="pot-prop ${e.proprieta?'':'empty'}" data-path="${e.ridx}.composizione.${e.forma}.${e.ingidx}.proprieta" contenteditable="false">${renderText(e.proprieta)||'Nessuna descrizione.'}</div>
         </div>
       </div>`).join('')}</div></div>`;
   }).join('');
@@ -587,7 +580,41 @@ function showIngrediente(nome){
 function closeIngOverlay(){document.getElementById('ingOverlay').classList.remove('open');}
 function ingOverlayClick(e){if(e.target.id==='ingOverlay')closeIngOverlay();}
 
-// ── Edit mode ─────────────────────────────────────────────────────────
+// ── Rich text toolbar ────────────────────────────────────────────────────
+// Usiamo onmousedown con preventDefault per non perdere il focus sul campo
+function fmtEvt(e,cmd,val){
+  e.preventDefault(); // impedisce che il campo perda il focus
+  if(!activeEditEl)return;
+  activeEditEl.focus();
+  document.execCommand(cmd,false,val||null);
+  syncEditEl(activeEditEl);
+  updateToolbarState();
+}
+
+function updateToolbarState(){
+  if(!activeEditEl)return;
+  document.getElementById('rt-bold').classList.toggle('active-fmt',document.queryCommandState('bold'));
+  document.getElementById('rt-italic').classList.toggle('active-fmt',document.queryCommandState('italic'));
+  document.getElementById('rt-under').classList.toggle('active-fmt',document.queryCommandState('underline'));
+}
+
+function positionToolbar(el){
+  const tb=document.getElementById('rtoolbar');
+  const rect=el.getBoundingClientRect();
+  const tbH=40;
+  let top=rect.top-tbH-6;
+  if(top<8)top=rect.bottom+6;
+  let left=Math.max(8,Math.min(rect.left,window.innerWidth-220));
+  tb.style.top=top+'px';tb.style.left=left+'px';
+  tb.classList.add('vis');
+}
+
+function hideToolbar(){
+  document.getElementById('rtoolbar').classList.remove('vis');
+  activeEditEl=null;
+}
+
+// ── Edit mode ────────────────────────────────────────────────────────────
 async function toggleEditMode(){
   if(!serverAvail){alert('Server non disponibile.');return;}
   if(!editMode){
@@ -600,27 +627,57 @@ async function toggleEditMode(){
   document.getElementById('editBar').classList.toggle('vis',editMode);
   const btn=document.getElementById('btnEdit');
   btn.classList.toggle('active',editMode);btn.textContent=editMode?'✏️ ON':'✏️';
-  if(editMode){if(activeIdx!==null)showDetail(activeIdx);else applyEditMode();}
-  else removeEditMode();
+  if(!editMode){hideToolbar();removeEditMode();}
+  else{if(activeIdx!==null)showDetail(activeIdx);else applyEditMode();}
 }
+
 function applyEditMode(){
   document.querySelectorAll('[data-path]').forEach(el=>{
     el.contentEditable='true';
-    if(!el._editHandler){el._editHandler=()=>syncEdit(el);el.addEventListener('input',el._editHandler);}
-    if(!el._clickBlocker){el._clickBlocker=e=>{if(editMode)e.stopPropagation();};el.addEventListener('click',el._clickBlocker);}
+    if(!el._editInit){
+      el._editInit=true;
+      el.addEventListener('input',()=>syncEditEl(el));
+      el.addEventListener('keyup',updateToolbarState);
+      el.addEventListener('mouseup',updateToolbarState);
+      el.addEventListener('focus',()=>{
+        activeEditEl=el;
+        positionToolbar(el);
+        updateToolbarState();
+      });
+      el.addEventListener('blur',e=>{
+        // Nasconde toolbar solo se il focus non va alla toolbar stessa
+        setTimeout(()=>{
+          if(!document.getElementById('rtoolbar').contains(document.activeElement)){
+            hideToolbar();
+          }
+        },100);
+      });
+      el.addEventListener('click',e=>{if(editMode)e.stopPropagation();});
+    }
   });
 }
-function removeEditMode(){document.querySelectorAll('[data-path]').forEach(el=>{el.contentEditable='false';});}
-function syncEdit(el){
+
+function removeEditMode(){
+  document.querySelectorAll('[data-path]').forEach(el=>{el.contentEditable='false';});
+}
+
+// Sincronizza el → RIMEDI: salva innerHTML (supporta rich text)
+function syncEditEl(el){
   const path=el.dataset.path;if(!path)return;
   const parts=path.split('.');const ridx=parseInt(parts[0]);
-  const val=getEditText(el);
+  // Ottieni innerHTML, ripulisci solo i <br> finali
+  let val=el.innerHTML.replace(/(<br\s*\/?>\s*)+$/,'').trim();
+  // Se non c'è formattazione HTML (solo testo e br) converti <br> → \n per JSON pulito
+  // Se c'è bold/u/em/span allora salva HTML direttamente
+  const hasRichFmt=/<(strong|em|b|i|u|span)[^>]*>/i.test(val);
+  if(!hasRichFmt)val=val.replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'');
   let obj=RIMEDI[ridx];
   for(let i=1;i<parts.length-1;i++){const k=parts[i];obj=Array.isArray(obj)?obj[parseInt(k,10)]:obj[k];if(obj===undefined||obj===null)return;}
   const lastKey=parts[parts.length-1];const finalKey=Array.isArray(obj)?parseInt(lastKey,10):lastKey;
   obj[finalKey]=(lastKey==='note'&&!val)?null:val;
   markModified();
 }
+
 async function saveEdits(){
   const btn=document.getElementById('btnSave');btn.disabled=true;btn.textContent='Salvo…';
   try{
@@ -632,22 +689,41 @@ async function saveEdits(){
   btn.disabled=false;btn.textContent='💾 Salva';
 }
 
-// Imposta stato disponibilità con i 3 valori
+// ── Nuovo rimedio ────────────────────────────────────────────────────────
+function newRimedio(){
+  const codice=prompt('Codice del nuovo rimedio (es. R99):','R');
+  if(!codice||!codice.trim())return;
+  const cod=codice.trim().toUpperCase();
+  if(RIMEDI.some(r=>r.codice===cod)){alert(`Il codice ${cod} esiste già.`);return;}
+  const newR={
+    codice:cod,nome:'',forma:[],disponibile:true,
+    indicazioni:'',impiego_specifico:null,
+    composizione:{},posologia:{},
+    associazioni:[],note_associazioni:'',note:null,
+    sistema:'',tutti_apparati:[],sintomi_indice:[]
+  };
+  RIMEDI.push(newR);
+  const idx=RIMEDI.length-1;
+  // Aggiunge alla sidebar
+  renderList();
+  // Apre la scheda
+  showDetail(idx);
+  markModified();
+  // Su mobile passa al dettaglio
+  if(isMobile)mobileTab('dettaglio');
+}
+
 function setDispState(idx,state){
   if(state==='available'){RIMEDI[idx].disponibile=true;delete RIMEDI[idx].disponibile_india;}
   else if(state==='india'){RIMEDI[idx].disponibile=false;RIMEDI[idx].disponibile_india=true;}
   else{RIMEDI[idx].disponibile=false;delete RIMEDI[idx].disponibile_india;}
-  // Aggiorna il badge nel titolo
   const wrap=document.getElementById(`dcard-code-${idx}`);
-  if(wrap){
-    const s=getDispState(RIMEDI[idx]);
-    wrap.innerHTML=RIMEDI[idx].codice+(s==='india'?'<div class="dcard-india" title="Disponibile in India (eBay)">🇮🇳</div>':'');
-  }
-  renderList();
-  markModified();
+  if(wrap){const s=getDispState(RIMEDI[idx]);wrap.innerHTML=RIMEDI[idx].codice+(s==='india'?`<div class="dcard-india">${indiaFlag('lg')}</div>`:'');}
+  renderList();markModified();
 }
 
 function cancelEdit(){if(confirm('Annullare tutte le modifiche non salvate?')){location.reload();}}
+
 function rebuildIngIndex(){
   for(const k in ING_INDEX)delete ING_INDEX[k];
   for(const k in ING_SEARCH)delete ING_SEARCH[k];
@@ -663,7 +739,7 @@ function rebuildIngIndex(){
   });
 }
 
-// ── Comparatore ───────────────────────────────────────────────────────
+// ── Comparatore ──────────────────────────────────────────────────────────
 function toggleCompare(idx){
   const r=RIMEDI[idx];const pos=compareList.findIndex(x=>x.idx===idx);
   if(pos>=0)compareList.splice(pos,1);
@@ -701,45 +777,35 @@ function openCompare(){
 function closeCompare(){document.getElementById('cmpOverlay').classList.remove('open');}
 function cmpOverlayClick(e){if(e.target.id==='cmpOverlay')closeCompare();}
 
-// ── Filtro per sintomo ────────────────────────────────────────────────
-function filterBySintomo(s){
-  filterSintomo=(filterSintomo===s)?null:s;
-  searchQ='';document.getElementById('searchInput').value='';document.getElementById('searchClear').classList.remove('vis');
-  renderList();if(isMobile)mobileTab('lista');
-}
+// ── Filtro sintomo ───────────────────────────────────────────────────────
+function filterBySintomo(s){filterSintomo=(filterSintomo===s)?null:s;searchQ='';document.getElementById('searchInput').value='';document.getElementById('searchClear').classList.remove('vis');renderList();if(isMobile)mobileTab('lista');}
 function clearSintomo(){filterSintomo=null;renderList();}
 
-// ── Indice sintomi ────────────────────────────────────────────────────
+// ── Indice sintomi ───────────────────────────────────────────────────────
 function openIndice(){renderIndice('');document.getElementById('idxSearch').value='';document.getElementById('idxOverlay').classList.add('open');}
 function closeIndice(){document.getElementById('idxOverlay').classList.remove('open');}
 function idxOverlayClick(e){if(e.target.id==='idxOverlay')closeIndice();}
-
 function renderIndice(q){
   const filter=q.trim().toLowerCase();
   const tutti=Object.keys(SINTOMI_INDEX).sort((a,b)=>a.localeCompare(b,'it'));
   const filtrati=filter?tutti.filter(s=>s.toLowerCase().includes(filter)):tutti;
-  const gruppi={};
-  filtrati.forEach(s=>{const l=s[0].toUpperCase();(gruppi[l]=gruppi[l]||[]).push(s);});
+  const gruppi={};filtrati.forEach(s=>{const l=s[0].toUpperCase();(gruppi[l]=gruppi[l]||[]).push(s);});
   if(!filtrati.length){document.getElementById('idxBody').innerHTML='<div style="color:var(--muted);font-size:.9rem;padding:16px 0">Nessun sintomo trovato.</div>';return;}
-
-  // Voce "pura da associazione": compare in ASSOC_TERMS ma NON in nessun sintomi_indice diretto
   const directSintomi=new Set(RIMEDI.flatMap(r=>r.sintomi_indice||[]));
-
   document.getElementById('idxBody').innerHTML=Object.keys(gruppi).sort().map(l=>`
     <div class="idx-letter">
       <div class="idx-letter-head">${l}</div>
       <div class="idx-chips">${gruppi[l].map(s=>{
         const n=SINTOMI_INDEX[s].size;
         const fromAssocOnly=ASSOC_TERMS.has(s)&&!directSintomi.has(s);
-        return`<div class="idx-chip${fromAssocOnly?' from-assoc':''}" onclick="closeIndice();filterBySintomo('${escJs(s)}')" title="${fromAssocOnly?'Da condizioni delle associazioni':'Sintomo diretto'}">
-          <span>${s}</span>
-          <span class="idx-count">${n}</span>
+        return`<div class="idx-chip${fromAssocOnly?' from-assoc':''}" onclick="closeIndice();filterBySintomo('${escJs(s)}')" title="${fromAssocOnly?'Da condizioni di associazione':'Sintomo diretto'}">
+          <span>${s}</span><span class="idx-count">${n}</span>
         </div>`;
       }).join('')}</div>
     </div>`).join('');
 }
 
-// ── Associazioni ──────────────────────────────────────────────────────
+// ── Associazioni ─────────────────────────────────────────────────────────
 function renderAssoc(r,ridx){
   if(!(r.associazioni||[]).length){
     if(r.note_associazioni)return`<div class="dsec"><div class="dsec-label">Note associazioni</div><div class="indicazioni" style="font-size:.88rem">${r.note_associazioni}</div></div>`;
@@ -754,13 +820,9 @@ function renderAssoc(r,ridx){
       ).join('')}</div>
     </div>`).join('')+`</div>`;
 }
+function switchForma(el,f){const b=el.closest('.dcard-body');b.querySelectorAll('.forma-tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');b.querySelectorAll('.ing-panel').forEach(p=>p.style.display=p.dataset.forma===f?'block':'none');}
 
-function switchForma(el,f){
-  const b=el.closest('.dcard-body');b.querySelectorAll('.forma-tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');
-  b.querySelectorAll('.ing-panel').forEach(p=>p.style.display=p.dataset.forma===f?'block':'none');
-}
-
-// ── Utility ────────────────────────────────────────────────────────────
+// ── Utility ──────────────────────────────────────────────────────────────
 function goToRimedio(c){const idx=RIMEDI.findIndex(r=>r.codice===c);if(idx>=0){searchQ='';document.getElementById('searchInput').value='';document.getElementById('searchClear').classList.remove('vis');showDetail(idx);}}
 function toggleFilters(){document.getElementById('filtersPanel').classList.toggle('open');document.getElementById('btnFilter').classList.toggle('active',document.getElementById('filtersPanel').classList.contains('open'));}
 function clearSearch(){searchQ='';document.getElementById('searchInput').value='';document.getElementById('searchClear').classList.remove('vis');renderList();}
@@ -768,6 +830,11 @@ function mobileTab(v){document.getElementById('sidebar').classList.toggle('hidde
 function toggleForma(el){filterForma=(filterForma===el.dataset.ftype)?null:el.dataset.ftype;document.querySelectorAll('[data-ftype]').forEach(c=>c.classList.toggle('on',c.dataset.ftype===filterForma));renderList();}
 function toggleDisp(el){filterDispOnly=!filterDispOnly;el.classList.toggle('on',filterDispOnly);renderList();}
 document.getElementById('searchInput').addEventListener('input',e=>{searchQ=e.target.value;document.getElementById('searchClear').classList.toggle('vis',searchQ.length>0);renderList();});
+// Nasconde toolbar se si clicca fuori
+document.addEventListener('mousedown',e=>{
+  const tb=document.getElementById('rtoolbar');
+  if(!tb.contains(e.target)&&!e.target.closest('[data-path]'))hideToolbar();
+});
 </script>
 </body>
 </html>
