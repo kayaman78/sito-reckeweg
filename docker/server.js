@@ -3,6 +3,7 @@
 const express = require('express');
 const fs      = require('fs');
 const path    = require('path');
+const { createCanvas } = require('canvas'); // opzionale, vedi sotto
 
 const app         = express();
 const PORT        = process.env.PORT        || 3000;
@@ -33,7 +34,6 @@ function generateDataJs(reason) {
   }
 }
 
-// ── Watcher: rigenera se rimedi.json cambia sul bind mount ────────────
 let watchDebounce = null;
 fs.watch(DATA_DIR, (event, filename) => {
   if (filename !== 'rimedi.json') return;
@@ -41,24 +41,136 @@ fs.watch(DATA_DIR, (event, filename) => {
   watchDebounce = setTimeout(() => generateDataJs('file changed'), 500);
 });
 
-// timestamp dell'ultimo aggiornamento di data.js (usato per cache busting)
 let dataVersion = Date.now();
-
 generateDataJs('startup');
 
 // ── Middleware ────────────────────────────────────────────────────────
 app.use(express.json({ limit: '50mb' }));
 
-// data.js dal bind mount — no cache
+// ── PWA: manifest.json ────────────────────────────────────────────────
+app.get('/manifest.json', (_req, res) => {
+  const manifest = {
+    name: 'Dr. Reckeweg Prontuario',
+    short_name: 'Reckeweg',
+    description: 'Prontuario omeopatico Dr. Reckeweg',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#FAF8F5',
+    theme_color: '#C0392B',
+    orientation: 'any',
+    icons: [
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ]
+  };
+  res.setHeader('Content-Type', 'application/manifest+json');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.json(manifest);
+});
+
+// ── PWA: icone generate programmaticamente (SVG → PNG via sharp o SVG diretto) ──
+// Genera un'icona SVG inline come PNG usando un SVG embedded.
+// Non richiede dipendenze extra: serve l'SVG come immagine direttamente.
+// Chrome accetta anche SVG come icona PWA tramite manifest.
+
+// Icona SVG: cerchio rosso con "R" bianca e punto rosso scuro
+function makeIconSvg(size) {
+  const r = size / 2;
+  const fontSize = Math.round(size * 0.42);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  <rect width="${size}" height="${size}" rx="${Math.round(size*0.22)}" fill="#C0392B"/>
+  <text x="${r}" y="${r + fontSize*0.36}" text-anchor="middle"
+    font-family="Georgia, serif" font-weight="700" font-size="${fontSize}"
+    fill="white" letter-spacing="-1">R</text>
+  <text x="${r + fontSize*0.28}" y="${r + fontSize*0.36}" text-anchor="middle"
+    font-family="Georgia, serif" font-weight="700" font-size="${Math.round(fontSize*0.5)}"
+    fill="rgba(255,255,255,0.6)">●</text>
+</svg>`;
+}
+
+app.get('/icon-192.png', (_req, res) => {
+  // Serve come SVG con il tipo image/png non è ideale, ma come SVG funziona
+  // Per PNG veri servirebbero sharp o canvas. Usiamo SVG con content-type corretto.
+  // La maggior parte dei browser moderni accetta SVG come icona PWA.
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.send(makeIconSvg(192));
+});
+
+app.get('/icon-512.png', (_req, res) => {
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.send(makeIconSvg(512));
+});
+
+// Apple touch icon (usato da Safari iOS per "Aggiungi a schermata Home")
+app.get('/apple-touch-icon.png', (_req, res) => {
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.send(makeIconSvg(180));
+});
+
+// ── PWA: Service Worker ───────────────────────────────────────────────
+// Cache-first per le risorse statiche, network-first per API e data.js
+app.get('/sw.js', (_req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.send(`
+const CACHE = 'reckeweg-v1';
+const STATIC = [
+  '/',
+  'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Source+Sans+3:wght@300;400;500;600&display=swap',
+  'https://cdnjs.cloudflare.com/ajax/libs/flag-icons/7.2.3/css/flag-icons.min.css'
+];
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(STATIC)).then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+    )).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', e => {
+  const url = new URL(e.request.url);
+  // API e data.js: sempre dal network
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/data.js')) {
+    e.respondWith(fetch(e.request).catch(() => new Response('{}', {headers:{'Content-Type':'application/json'}})));
+    return;
+  }
+  // Resto: cache-first con fallback network
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(resp => {
+        if (resp && resp.status === 200 && resp.type !== 'opaque') {
+          const clone = resp.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return resp;
+      });
+    })
+  );
+});
+`);
+});
+
+// ── data.js ───────────────────────────────────────────────────────────
 app.get('/data.js', (_req, res) => {
   if (!fs.existsSync(DATAJS_FILE))
-    return res.status(503).send('// data.js non disponibile — carica rimedi.json\n');
+    return res.status(503).send('// data.js non disponibile\n');
   res.setHeader('Content-Type', 'application/javascript');
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(DATAJS_FILE);
 });
 
-// File statici (index.html) — no cache per vedere subito i rebuild
+// File statici
 app.use(express.static(path.join(__dirname, 'public'), {
   etag: false,
   lastModified: false,
@@ -74,7 +186,7 @@ app.get('/api/version', (_req, res) => {
 
 app.post('/api/auth', (req, res) => {
   const editPwd = process.env.EDIT_PASSWORD;
-  if (!editPwd) return res.json({ ok: false }); // se non configurata, edit disabilitato
+  if (!editPwd) return res.json({ ok: false });
   res.json({ ok: req.body?.pwd === editPwd });
 });
 
@@ -82,17 +194,14 @@ app.post('/api/save', (req, res) => {
   const data = req.body;
   if (!Array.isArray(data))
     return res.status(400).json({ ok: false, error: 'Payload deve essere un array JSON' });
-
   if (fs.existsSync(JSON_FILE)) {
-    const ts  = new Date().toISOString().replace(/\D/g, '').slice(0, 15);
+    const ts = new Date().toISOString().replace(/\D/g, '').slice(0, 15);
     fs.copyFileSync(JSON_FILE, path.join(DATA_DIR, `rimedi_bak_${ts}.json`));
     const baks = fs.readdirSync(DATA_DIR)
-      .filter(f => f.startsWith('rimedi_bak_') && f.endsWith('.json'))
-      .sort();
+      .filter(f => f.startsWith('rimedi_bak_') && f.endsWith('.json')).sort();
     baks.slice(0, Math.max(0, baks.length - MAX_BACKUPS))
       .forEach(f => { try { fs.unlinkSync(path.join(DATA_DIR, f)); } catch {} });
   }
-
   fs.writeFileSync(JSON_FILE, JSON.stringify(data, null, 2), 'utf8');
   generateDataJs('api/save');
   console.log(`💾 Salvati ${data.length} rimedi`);
@@ -104,4 +213,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🟢 Reckeweg → http://0.0.0.0:${PORT}`);
   console.log(`   DATA_DIR    : ${DATA_DIR}`);
   console.log(`   rimedi.json : ${fs.existsSync(JSON_FILE) ? '✓ trovato' : '✗ mancante'}`);
+  console.log(`   PWA         : manifest.json + sw.js attivi`);
 });
