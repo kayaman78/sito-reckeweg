@@ -1,12 +1,12 @@
-services:
-  sito-reckeweg:
+sito-reckeweg:
     image: ghcr.io/kayaman78/sito-reckeweg:latest
     container_name: sito-reckeweg
     restart: always
     environment:
-      PORT: 3000
+      PORT: 33000
       DATA_DIR: /app/data
       MAX_BACKUPS: 10
+      EDIT_PASSWORD: dobra
     volumes:
       - /srv/docker/sito-reckeweg:/app/data
     networks:
