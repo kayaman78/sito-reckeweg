@@ -19,13 +19,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/7.2.3/css/flag-icons.min.css">
 
 <script>
-// Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
 }
-// Carica data.js con cache busting
 (async () => {
   let v = Date.now();
   try {
@@ -279,6 +277,14 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 .forma-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .forma-tab{padding:5px 14px;border-radius:6px;border:1px solid var(--bordo);font-size:.82rem;cursor:pointer;background:white;color:var(--muted)}
 .forma-tab.on{background:var(--r);color:white;border-color:var(--r)}
+
+/* ── IMPIEGO SPECIFICO ── */
+.impiego-box{
+  background:var(--grigio);border-left:3px solid var(--muted);
+  border-radius:0 8px 8px 0;padding:10px 14px;
+  font-size:.86rem;line-height:1.65;color:var(--muted);
+  margin-top:8px;font-style:italic;
+}
 
 /* ── POSOLOGIA ── */
 .poso-box{
@@ -645,11 +651,34 @@ function markModified() {
   document.getElementById('editMsg').style.color = '#7c2d12';
 }
 
+// ── Impiego specifico per forma ───────────────────────────────────────
+function parseImpiego(text, forme) {
+  if (!text || !forme.length) return {};
+  const result = {};
+  forme.forEach((f, i) => {
+    const uf = f.toUpperCase();
+    const nextForms = forme.slice(i + 1).map(g => g.toUpperCase());
+    const stopPat = nextForms.length ? '(?=' + nextForms.join('|') + ')' : '';
+    const re = new RegExp(uf + '\\s*([\\s\\S]*?)(?:' + (stopPat || '$') + ')', 'i');
+    const m = text.match(re);
+    if (m && m[1] && m[1].trim()) result[f] = m[1].trim();
+  });
+  // Fallback: se non trova sezioni per forma, usa il testo intero sulla prima
+  if (!Object.keys(result).length && text.trim()) {
+    result[forme[0]] = text.trim();
+  }
+  return result;
+}
+
+function impiegoBox(text) {
+  if (!text) return '';
+  return `<div class="impiego-box">${renderText(text)}</div>`;
+}
+
 // ── Init ──────────────────────────────────────────────────────────────
 function initApp() {
   if (typeof RIMEDI === 'undefined') { alert('data.js non trovato!'); return; }
 
-  // Costruisce indice sintomi
   RIMEDI.forEach(r => {
     (r.sintomi_indice || []).forEach(s => {
       if (!SINTOMI_INDEX[s]) SINTOMI_INDEX[s] = new Set();
@@ -665,7 +694,6 @@ function initApp() {
     });
   });
 
-  // Costruisce indice ingredienti
   RIMEDI.forEach((r, ridx) => {
     Object.entries(r.composizione || {}).forEach(([forma, list]) => {
       (list || []).forEach((ing, ingidx) => {
@@ -689,7 +717,6 @@ function initApp() {
     });
   });
 
-  // Popola filtro sistema
   const sistemi = [...new Set(RIMEDI.map(r => r.sistema).filter(Boolean))].sort();
   const fsEl = document.getElementById('filterSistema');
   sistemi.forEach(s => {
@@ -706,7 +733,6 @@ function initApp() {
 
   renderList();
 
-  // Verifica disponibilità server per edit
   fetch('/api/ping').then(r => r.json()).then(d => {
     if (d.ok) {
       serverAvail = true;
@@ -773,11 +799,15 @@ function showDetail(idx) {
   const r = RIMEDI[idx];
   const forme = Object.keys(r.composizione || {});
 
+  // Parsing impiego_specifico per forma
+  const impiegoMap = parseImpiego(r.impiego_specifico, forme);
+
   let compHTML = '';
   if (!forme.length)
     compHTML = '<em style="color:var(--muted);font-size:.85rem">Non disponibile</em>';
   else if (forme.length === 1)
-    compHTML = ingGrid(r.composizione[forme[0]], r.codice, idx, forme[0]);
+    compHTML = ingGrid(r.composizione[forme[0]], r.codice, idx, forme[0])
+             + impiegoBox(impiegoMap[forme[0]]);
   else
     compHTML =
       '<div class="forma-tabs">' +
@@ -785,7 +815,10 @@ function showDetail(idx) {
         `<div class="forma-tab ${i === 0 ? 'on' : ''}" onclick="switchForma(this,'${f}')">${f}</div>`
       ).join('') + '</div>' +
       forme.map((f, i) =>
-        `<div class="ing-panel" data-forma="${f}" style="${i > 0 ? 'display:none' : ''}">${ingGrid(r.composizione[f], r.codice, idx, f)}</div>`
+        `<div class="ing-panel" data-forma="${f}" style="${i > 0 ? 'display:none' : ''}">
+          ${ingGrid(r.composizione[f], r.codice, idx, f)}
+          ${impiegoBox(impiegoMap[f])}
+        </div>`
       ).join('');
 
   const posoHTML = Object.entries(r.posologia || {})
