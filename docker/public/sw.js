@@ -1,6 +1,5 @@
 const CACHE = 'reckeweg-v5';
 
-// Asset statici cachabili: icone, font, css esterni
 const CACHEABLE = /\.(png|ico|woff2?|ttf|css)$/i;
 
 self.addEventListener('install', e => {
@@ -20,7 +19,6 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // 1. API e data.js: sempre dal network
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/data.js')) {
     e.respondWith(
       fetch(e.request).catch(() =>
@@ -30,7 +28,6 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // 2. HTML/navigazioni: network-first, cache solo come fallback offline
   if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
     e.respondWith(
       fetch(e.request).then(resp => {
@@ -48,7 +45,6 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // 3. Asset statici (png, ico, font, css): cache-first
   if (CACHEABLE.test(url.pathname) || url.hostname !== self.location.hostname) {
     e.respondWith(
       caches.match(e.request).then(cached => {
@@ -65,6 +61,5 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // 4. Tutto il resto: network diretto
   e.respondWith(fetch(e.request).catch(() => new Response('', { status: 503 })));
 });
