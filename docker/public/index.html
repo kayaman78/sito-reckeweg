@@ -280,10 +280,15 @@ html,body{height:100%;background:var(--crema);color:var(--testo);font-family:'So
 
 /* ── IMPIEGO SPECIFICO ── */
 .impiego-box{
-  background:var(--grigio);border-left:3px solid var(--muted);
+  background:var(--rl);border-left:3px solid var(--r);
   border-radius:0 8px 8px 0;padding:10px 14px;
-  font-size:.86rem;line-height:1.65;color:var(--muted);
-  margin-top:8px;font-style:italic;
+  font-size:.88rem;line-height:1.7;color:var(--testo);
+  margin-top:8px;
+}
+.impiego-label{
+  font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:1px;
+  color:var(--r);font-weight:500;text-transform:uppercase;
+  margin-bottom:6px;
 }
 
 /* ── POSOLOGIA ── */
@@ -658,21 +663,26 @@ function parseImpiego(text, forme) {
   forme.forEach((f, i) => {
     const uf = f.toUpperCase();
     const nextForms = forme.slice(i + 1).map(g => g.toUpperCase());
-    const stopPat = nextForms.length ? '(?=' + nextForms.join('|') + ')' : '';
-    const re = new RegExp(uf + '\\s*([\\s\\S]*?)(?:' + (stopPat || '$') + ')', 'i');
+    // greedy quando non c'è stop; lookahead quando c'è il prossimo blocco
+    const re = nextForms.length
+      ? new RegExp(uf + '\\s*([\\s\\S]*?)(?=' + nextForms.join('|') + ')', 'i')
+      : new RegExp(uf + '\\s*([\\s\\S]+)', 'i');
     const m = text.match(re);
     if (m && m[1] && m[1].trim()) result[f] = m[1].trim();
   });
-  // Fallback: se non trova sezioni per forma, usa il testo intero sulla prima
+  // Fallback: nessun keyword trovato → testo intero sulla prima forma
   if (!Object.keys(result).length && text.trim()) {
     result[forme[0]] = text.trim();
   }
   return result;
 }
 
-function impiegoBox(text) {
+function impiegoBox(text, idx, showLabel) {
   if (!text) return '';
-  return `<div class="impiego-box">${renderText(text)}</div>`;
+  const label = showLabel
+    ? '<div class="impiego-label">USO SPECIFICO</div>'
+    : '';
+  return `<div class="impiego-box">${label}<span data-path="${idx}.impiego_specifico" contenteditable="false">${renderText(text)}</span></div>`;
 }
 
 // ── Init ──────────────────────────────────────────────────────────────
@@ -807,7 +817,7 @@ function showDetail(idx) {
     compHTML = '<em style="color:var(--muted);font-size:.85rem">Non disponibile</em>';
   else if (forme.length === 1)
     compHTML = ingGrid(r.composizione[forme[0]], r.codice, idx, forme[0])
-             + impiegoBox(impiegoMap[forme[0]]);
+             + impiegoBox(impiegoMap[forme[0]], idx, true);
   else
     compHTML =
       '<div class="forma-tabs">' +
@@ -817,7 +827,7 @@ function showDetail(idx) {
       forme.map((f, i) =>
         `<div class="ing-panel" data-forma="${f}" style="${i > 0 ? 'display:none' : ''}">
           ${ingGrid(r.composizione[f], r.codice, idx, f)}
-          ${impiegoBox(impiegoMap[f])}
+          ${impiegoBox(impiegoMap[f], idx, false)}
         </div>`
       ).join('');
 
@@ -968,7 +978,8 @@ function showIngrediente(nome) {
   );
   const codiciUnici = [...new Set(entries.map(e => e.codice))];
 
-  document.getElementById('ingNome').textContent = nome;
+  document.getElementById('ingNome').innerHTML =
+    `<span data-ing-nome="${escJs(nome)}" contenteditable="false">${nome}</span>`;
   document.getElementById('ingSubtitle').textContent =
     `Presente in ${codiciUnici.length} ${codiciUnici.length === 1 ? 'rimedio' : 'rimedi'} · ` +
     `${potKeys.length} ${potKeys.length === 1 ? 'diluizione' : 'diluizioni'}`;
@@ -1081,6 +1092,32 @@ function applyEditMode() {
         }, 120);
       });
       el.addEventListener('click', e => { if (editMode) e.stopPropagation(); });
+    }
+  });
+  // Titolo ingrediente nella modale
+  document.querySelectorAll('[data-ing-nome]').forEach(el => {
+    el.contentEditable = 'true';
+    if (!el._editInit) {
+      el._editInit = true;
+      el.addEventListener('input', () => {
+        const oldNome = el.dataset.ingNome;
+        const newNome = el.textContent.trim();
+        if (!newNome || newNome === oldNome) return;
+        // Aggiorna il nome in tutti i rimedi che contengono questo ingrediente
+        (ING_INDEX[oldNome] || []).forEach(e => {
+          if (RIMEDI[e.ridx] && RIMEDI[e.ridx].composizione[e.forma] &&
+              RIMEDI[e.ridx].composizione[e.forma][e.ingidx])
+            RIMEDI[e.ridx].composizione[e.forma][e.ingidx].nome = newNome;
+        });
+        markModified();
+      });
+      el.addEventListener('focus', () => { activeEditEl = el; positionToolbar(el); });
+      el.addEventListener('blur', () => {
+        setTimeout(() => {
+          if (!document.getElementById('rtoolbar').contains(document.activeElement))
+            hideToolbar();
+        }, 120);
+      });
     }
   });
 }
