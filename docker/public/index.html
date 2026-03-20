@@ -1003,11 +1003,7 @@ function showIngrediente(nome) {
             </div>
             <div class="pot-details">
               <div class="pot-rimedio-nome">${e.rimNome || e.codice}</div>
-              <div class="pot-prop ${e.proprieta ? '' : 'empty'}"
-                data-path="${e.ridx}.composizione.${e.forma}.${e.ingidx}.proprieta"
-                contenteditable="false">
-                ${renderText(e.proprieta) || 'Nessuna descrizione.'}
-              </div>
+              <div class="pot-prop ${e.proprieta ? '' : 'empty'}" data-path="${e.ridx}.composizione.${e.forma}.${e.ingidx}.proprieta" contenteditable="false">${renderText(e.proprieta) || 'Nessuna descrizione.'}</div>
             </div>
           </div>`).join('')}
       </div>
