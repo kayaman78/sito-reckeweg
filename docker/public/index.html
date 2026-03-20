@@ -657,32 +657,33 @@ function markModified() {
 }
 
 // ── Impiego specifico per forma ───────────────────────────────────────
+// Rimuove GOCCE/COMPRESSE/SCIROPPO dall'inizio di un testo
+function stripFormKeyword(text) {
+  return text.replace(/^(GOCCE|COMPRESSE|SCIROPPO)\s*/i, '').trim();
+}
+
 function parseImpiego(text, forme) {
   if (!text || !forme.length) return {};
   const result = {};
   forme.forEach((f, i) => {
     const uf = f.toUpperCase();
     const nextForms = forme.slice(i + 1).map(g => g.toUpperCase());
-    // greedy quando non c'è stop; lookahead quando c'è il prossimo blocco
     const re = nextForms.length
       ? new RegExp(uf + '\\s*([\\s\\S]*?)(?=' + nextForms.join('|') + ')', 'i')
       : new RegExp(uf + '\\s*([\\s\\S]+)', 'i');
     const m = text.match(re);
-    if (m && m[1] && m[1].trim()) result[f] = m[1].trim();
+    if (m && m[1] && m[1].trim()) result[f] = stripFormKeyword(m[1].trim());
   });
-  // Fallback: nessun keyword trovato → testo intero sulla prima forma
+  // Fallback: nessun keyword trovato → testo intero sulla prima forma, strippato
   if (!Object.keys(result).length && text.trim()) {
-    result[forme[0]] = text.trim();
+    result[forme[0]] = stripFormKeyword(text.trim());
   }
   return result;
 }
 
-function impiegoBox(text, idx, showLabel) {
+function impiegoBox(text, idx) {
   if (!text) return '';
-  const label = showLabel
-    ? '<div class="impiego-label">USO SPECIFICO</div>'
-    : '';
-  return `<div class="impiego-box">${label}<span data-path="${idx}.impiego_specifico" contenteditable="false">${renderText(text)}</span></div>`;
+  return `<div class="impiego-box"><div class="impiego-label">USO SPECIFICO</div><span data-path="${idx}.impiego_specifico" contenteditable="false">${renderText(text)}</span></div>`;
 }
 
 // ── Init ──────────────────────────────────────────────────────────────
@@ -817,7 +818,7 @@ function showDetail(idx) {
     compHTML = '<em style="color:var(--muted);font-size:.85rem">Non disponibile</em>';
   else if (forme.length === 1)
     compHTML = ingGrid(r.composizione[forme[0]], r.codice, idx, forme[0])
-             + impiegoBox(impiegoMap[forme[0]], idx, true);
+             + impiegoBox(impiegoMap[forme[0]], idx);
   else
     compHTML =
       '<div class="forma-tabs">' +
@@ -827,7 +828,7 @@ function showDetail(idx) {
       forme.map((f, i) =>
         `<div class="ing-panel" data-forma="${f}" style="${i > 0 ? 'display:none' : ''}">
           ${ingGrid(r.composizione[f], r.codice, idx, f)}
-          ${impiegoBox(impiegoMap[f], idx, false)}
+          ${impiegoBox(impiegoMap[f], idx)}
         </div>`
       ).join('');
 
@@ -978,8 +979,7 @@ function showIngrediente(nome) {
   );
   const codiciUnici = [...new Set(entries.map(e => e.codice))];
 
-  document.getElementById('ingNome').innerHTML =
-    `<span data-ing-nome="${escJs(nome)}" contenteditable="false">${nome}</span>`;
+  document.getElementById('ingNome').textContent = nome;
   document.getElementById('ingSubtitle').textContent =
     `Presente in ${codiciUnici.length} ${codiciUnici.length === 1 ? 'rimedio' : 'rimedi'} · ` +
     `${potKeys.length} ${potKeys.length === 1 ? 'diluizione' : 'diluizioni'}`;
@@ -1092,32 +1092,6 @@ function applyEditMode() {
         }, 120);
       });
       el.addEventListener('click', e => { if (editMode) e.stopPropagation(); });
-    }
-  });
-  // Titolo ingrediente nella modale
-  document.querySelectorAll('[data-ing-nome]').forEach(el => {
-    el.contentEditable = 'true';
-    if (!el._editInit) {
-      el._editInit = true;
-      el.addEventListener('input', () => {
-        const oldNome = el.dataset.ingNome;
-        const newNome = el.textContent.trim();
-        if (!newNome || newNome === oldNome) return;
-        // Aggiorna il nome in tutti i rimedi che contengono questo ingrediente
-        (ING_INDEX[oldNome] || []).forEach(e => {
-          if (RIMEDI[e.ridx] && RIMEDI[e.ridx].composizione[e.forma] &&
-              RIMEDI[e.ridx].composizione[e.forma][e.ingidx])
-            RIMEDI[e.ridx].composizione[e.forma][e.ingidx].nome = newNome;
-        });
-        markModified();
-      });
-      el.addEventListener('focus', () => { activeEditEl = el; positionToolbar(el); });
-      el.addEventListener('blur', () => {
-        setTimeout(() => {
-          if (!document.getElementById('rtoolbar').contains(document.activeElement))
-            hideToolbar();
-        }, 120);
-      });
     }
   });
 }
