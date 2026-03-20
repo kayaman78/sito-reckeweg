@@ -1,4 +1,4 @@
-const CACHE = 'reckeweg-v3';
+const CACHE = 'reckeweg-v4';
 
 // Install: skipWaiting immediato, NESSUN caching in install
 // (evita errori 401 se il reverse proxy ha auth)
