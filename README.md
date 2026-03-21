@@ -1,6 +1,4 @@
-# sito-reckeweg test
-
-Prontuario omeopatico Dr. Reckeweg.
+# sito-reckeweg
 
 **GitHub:** https://github.com/kayaman78/sito-reckeweg  
 **Immagine:** `ghcr.io/kayaman78/sito-reckeweg:latest`
@@ -33,29 +31,6 @@ sito-reckeweg/
 Il server rileva automaticamente le modifiche a `rimedi.json`:
 basta copiare il nuovo file nella cartella, `data.js` si rigenera in ~1 secondo senza restart.
 
-## Deploy
-
-```bash
-git clone https://github.com/kayaman78/sito-reckeweg
-cd sito-reckeweg
-cp .env.example .env
-
-mkdir -p /srv/docker/reckeweg
-cp /percorso/rimedi.json /srv/docker/reckeweg/
-
-docker compose up -d
-```
-
-NPM raggiunge il container come `http://reckeweg:3000` sulla rete `kayabridge`.
-
-## Aggiornare l'HTML
-
-```bash
-# modifica docker/public/index.html, fai push
-git push
-# Komodo: build → push ghcr → redeploy
-docker compose pull && docker compose up -d
-```
 
 ## Aggiornare i dati
 
