@@ -918,12 +918,9 @@ function showDetail(idx) {
         ${sintomiHTML}
         ${forme.length ? `<div class="dsec"><div class="dsec-label">Composizione</div>${compHTML}</div>` : ''}
         ${posoHTML ? `<div class="dsec"><div class="dsec-label">Posologia</div>${posoHTML}</div>` : ''}
-        ${(r.proprieta || editMode) ? `<div class="dsec${editMode ? '' : ''}">
+        ${(r.proprieta || editMode) ? `<div class="dsec">
           <div class="dsec-label">Proprietà</div>
-          <div class="indicazioni">
-            <span data-path="${idx}.proprieta" contenteditable="false">${renderText(r.proprieta || '')}</span>
-          </div>
-          ${!r.proprieta && editMode ? '<div style="font-size:.85rem;color:var(--muted);font-style:italic;margin-top:6px">Campo vuoto — scrivi qui le proprietà</div>' : ''}
+          <span class="indicazioni" data-path="${idx}.proprieta" contenteditable="false" style="display:block;min-height:${editMode ? '2em' : '0'}">${renderText(r.proprieta || '')}</span>
         </div>` : ''}
         ${renderAssoc(r, idx)}
         ${backHTML}
