@@ -918,6 +918,13 @@ function showDetail(idx) {
         ${sintomiHTML}
         ${forme.length ? `<div class="dsec"><div class="dsec-label">Composizione</div>${compHTML}</div>` : ''}
         ${posoHTML ? `<div class="dsec"><div class="dsec-label">Posologia</div>${posoHTML}</div>` : ''}
+        ${(r.proprieta || editMode) ? `<div class="dsec${editMode ? '' : ''}">
+          <div class="dsec-label">Proprietà</div>
+          <div class="indicazioni">
+            <span data-path="${idx}.proprieta" contenteditable="false">${renderText(r.proprieta || '')}</span>
+          </div>
+          ${!r.proprieta && editMode ? '<div style="font-size:.85rem;color:var(--muted);font-style:italic;margin-top:6px">Campo vuoto — scrivi qui le proprietà</div>' : ''}
+        </div>` : ''}
         ${renderAssoc(r, idx)}
         ${backHTML}
         <div class="dsec">
@@ -1110,7 +1117,7 @@ function syncEditEl(el) {
   }
   const lk = parts[parts.length - 1];
   const fk = Array.isArray(obj) ? parseInt(lk, 10) : lk;
-  obj[fk] = (lk === 'note' && !val) ? null : val;
+  obj[fk] = (['note', 'proprieta', 'impiego_specifico'].includes(lk) && !val) ? null : val;
   markModified();
 }
 async function saveEdits() {
@@ -1143,7 +1150,7 @@ function newRimedio() {
     codice: cod, nome: '', forma: [], disponibile: true,
     indicazioni: '', impiego_specifico: null,
     composizione: {}, posologia: {}, associazioni: [],
-    note_associazioni: '', note: null,
+    note_associazioni: '', note: null, proprieta: null,
     sistema: '', tutti_apparati: [], sintomi_indice: []
   });
   const idx = RIMEDI.length - 1;
