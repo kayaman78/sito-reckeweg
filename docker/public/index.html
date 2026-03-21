@@ -1100,7 +1100,7 @@ function syncEditEl(el) {
   const parts = path.split('.');
   const ridx = parseInt(parts[0]);
   let val = el.innerHTML.replace(/(<br\s*\/?>\s*)+$/, '').trim();
-  const hasRich = /<(strong|em|b|i|u|span)[^>]*>/i.test(val);
+  const hasRich = /<(strong|em|b|i|u|span|font)[^>]*>/i.test(val);
   if (!hasRich) val = val.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
   let obj = RIMEDI[ridx];
   for (let i = 1; i < parts.length - 1; i++) {
